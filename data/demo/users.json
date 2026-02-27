@@ -1,0 +1,347 @@
+{
+    "users": [
+        {
+            "user_id": "user_demo_new",
+            "name": "Alex",
+            "created_at": "2026-03-14",
+            "entries": []
+        },
+        {
+            "user_id": "user_demo_established",
+            "name": "Jordan",
+            "created_at": "2026-01-20",
+            "entries": [
+                {
+                    "entry_id": "entry_001",
+                    "date": "2026-01-22",
+                    "text": "I don't really know how to put this into words yet. It's been three days since the session and I still feel like I'm not fully back in my body. During the experience there was this moment where I completely lost the sense of where I ended and everything else began. The boundary between me and the room, me and the music, me and the facilitator just dissolved. It wasn't frightening in the moment but now sitting here trying to write about it I feel a low hum of something that might be fear. Like: if that boundary can disappear, what does that mean about who I actually am? At the same time there's this residue of something enormous and beautiful. Like I touched something real. I keep staring out the window at the trees.",
+                    "emotions": {
+                        "awe": 0.88,
+                        "overwhelm": 0.76,
+                        "fear": 0.58
+                    },
+                    "themes": [
+                        "boundary dissolution",
+                        "ego softening",
+                        "nature connection",
+                        "identity questioning"
+                    ],
+                    "recommendations": [
+                        "grounding breathwork",
+                        "nature journaling",
+                        "body scan meditation"
+                    ]
+                },
+                {
+                    "entry_id": "entry_002",
+                    "date": "2026-01-25",
+                    "text": "Tried to go back to normal life today. Went to the grocery store and it felt completely surreal. People moving through the aisles, choosing pasta, checking their phones. I was overwhelmed by how much was happening in every single face. I had to leave early. I'm not sure if what I'm feeling is integration or if I'm just dissociated. There's still so much awe sitting in my chest like a stone -- not heavy exactly, more like dense. Like a lot of weight that isn't bad weight. I've been sleeping a lot. My therapist says that's normal but I keep wondering if I should be doing more, processing faster. The trees outside still feel significant. I wrote 'everything is alive' in my notebook and then felt embarrassed about it and then decided I didn't care.",
+                    "emotions": {
+                        "awe": 0.79,
+                        "overwhelm": 0.82,
+                        "fear": 0.44,
+                        "confusion": 0.61
+                    },
+                    "themes": [
+                        "hyperawareness",
+                        "dissociation concern",
+                        "meaning-making",
+                        "nature connection"
+                    ],
+                    "recommendations": [
+                        "grounding breathwork",
+                        "gentle movement",
+                        "limiting stimulation"
+                    ]
+                },
+                {
+                    "entry_id": "entry_003",
+                    "date": "2026-01-29",
+                    "text": "Something shifted slightly this week. The overwhelm is still there but it has more texture now. I can sit with it longer before I need to move or distract myself. I keep returning to one image from the session: I was standing in a field (in my mind -- I was lying down the whole time) and the sky above me just kept opening, getting larger and larger, and I felt absolutely tiny and absolutely safe at the same time. I've never felt both of those at once before. In regular life I'm usually trying to feel big enough, capable enough. This was different. I want to understand it. I also feel afraid that the understanding will make it smaller. That if I analyze it too much it will become a thing I figured out instead of a thing I experienced.",
+                    "emotions": {
+                        "awe": 0.85,
+                        "fear": 0.52,
+                        "overwhelm": 0.64,
+                        "joy": 0.41
+                    },
+                    "themes": [
+                        "awe and smallness",
+                        "safety paradox",
+                        "integration anxiety",
+                        "meaning-making"
+                    ],
+                    "recommendations": [
+                        "reflective journaling",
+                        "somatic grounding",
+                        "nature time"
+                    ]
+                },
+                {
+                    "entry_id": "entry_004",
+                    "date": "2026-02-03",
+                    "text": "Two weeks out now. The acute intensity has dropped but something new is surfacing underneath it. I've been thinking about my dad a lot. We've had a difficult relationship for most of my adult life -- a lot of distance, a lot of things unsaid. During the session at one point I saw his face and started crying harder than I have in years. I didn't think about it too much in the days after because everything else was so loud. But now that things are quieter, that grief is sitting there waiting for me. It's not sharp. It's more like weather. Like a front that moved in and is just sitting over the area. I don't know what to do with it yet.",
+                    "emotions": {
+                        "grief": 0.78,
+                        "overwhelm": 0.48,
+                        "confusion": 0.55,
+                        "awe": 0.31
+                    },
+                    "themes": [
+                        "grief",
+                        "family relationships",
+                        "emotional emergence",
+                        "unfinished business"
+                    ],
+                    "recommendations": [
+                        "IFS parts work",
+                        "letter writing exercise",
+                        "somatic breathwork"
+                    ]
+                },
+                {
+                    "entry_id": "entry_005",
+                    "date": "2026-02-06",
+                    "text": "I've been sitting with the grief about my dad and something is becoming clearer, even if I can't fully name it. There was love there, in the session, when I saw his face. Not just pain. I think I've been so focused on the hurt for so long that I forgot the love was also real and also mine. It's confusing because nothing in the external situation has changed. He hasn't changed. But something in how I'm holding it has shifted. I don't know if that's good or if I'm just doing some kind of spiritual bypassing and letting him off the hook. My integration therapist said these two things can coexist. I'm trying to believe that. Today was hard but in a way that felt like actual movement rather than just suffering.",
+                    "emotions": {
+                        "grief": 0.71,
+                        "confusion": 0.68,
+                        "joy": 0.39,
+                        "overwhelm": 0.33
+                    },
+                    "themes": [
+                        "grief",
+                        "love and pain coexistence",
+                        "family relationships",
+                        "spiritual bypassing concern"
+                    ],
+                    "recommendations": [
+                        "IFS parts work",
+                        "compassion meditation",
+                        "therapist consultation"
+                    ]
+                },
+                {
+                    "entry_id": "entry_006",
+                    "date": "2026-02-10",
+                    "text": "Three weeks out. I've been noticing how much of my daily life I was running on autopilot before. Same routes, same reactions, same internal commentary. Since the session that autopilot keeps stuttering. I'll be in the middle of something completely routine and notice that I've been doing it robotically for years. It's disorienting but also kind of funny sometimes. I laughed today at myself for how dramatically I pour my morning coffee, like I'm in a commercial. There are small moments of real joy in this noticing. And then there's the confusion about what to actually do with it. Change everything? Change nothing? I'm trying to hold the question without demanding an answer from myself.",
+                    "emotions": {
+                        "confusion": 0.72,
+                        "joy": 0.58,
+                        "grief": 0.42,
+                        "overwhelm": 0.28
+                    },
+                    "themes": [
+                        "autopilot awareness",
+                        "habit questioning",
+                        "self-observation",
+                        "meaning-making"
+                    ],
+                    "recommendations": [
+                        "mindfulness practice",
+                        "ACT values clarification",
+                        "reflective journaling"
+                    ]
+                },
+                {
+                    "entry_id": "entry_007",
+                    "date": "2026-02-14",
+                    "text": "Hard week. I went to a family dinner and it was like walking into a room where everyone was still asleep in the way I used to be asleep, and I didn't know how to be there. I don't mean that in an arrogant way -- it wasn't that I felt superior, it was more like I had moved to a different time zone and everyone was on the old one and I couldn't explain the jet lag. I found myself being short with my brother over something small and I could feel that I was doing it from an old part of myself, a defensive part, and I couldn't stop it in the moment. Then I felt guilty about it afterwards. The session opened something and I don't have the skills yet to navigate everything that's coming through the opening. That's the honest version.",
+                    "emotions": {
+                        "confusion": 0.77,
+                        "grief": 0.61,
+                        "fear": 0.48,
+                        "joy": 0.22
+                    },
+                    "themes": [
+                        "integration difficulty",
+                        "relational friction",
+                        "IFS parts",
+                        "identity shift"
+                    ],
+                    "recommendations": [
+                        "IFS parts work",
+                        "self-compassion practice",
+                        "communication skills"
+                    ]
+                },
+                {
+                    "entry_id": "entry_008",
+                    "date": "2026-02-19",
+                    "text": "Something is beginning to settle. I don't want to overstate it because it's subtle. But the confusion is less like being lost and more like being in an unfamiliar neighborhood and starting to learn the landmarks. I had a good conversation with my brother this week where I actually told him, briefly, that I'd been going through something and that the dinner had been hard for me and that I was sorry for how I was. He didn't really know what to do with it but he said it was okay. That felt like a small repair. I'm starting to see that the experience isn't asking me to become a different person entirely. It's asking me to be more myself. I'm starting to be less afraid of that.",
+                    "emotions": {
+                        "confusion": 0.41,
+                        "joy": 0.62,
+                        "grief": 0.38,
+                        "gratitude": 0.54
+                    },
+                    "themes": [
+                        "integration progress",
+                        "relational repair",
+                        "identity clarification",
+                        "self-acceptance"
+                    ],
+                    "recommendations": [
+                        "gratitude journaling",
+                        "somatic grounding",
+                        "ACT values clarification"
+                    ]
+                },
+                {
+                    "entry_id": "entry_009",
+                    "date": "2026-02-24",
+                    "text": "Five weeks out. The landscape has changed quite a bit. The awe from the early weeks isn't gone but it's no longer sitting on top of everything. It's more like background music now -- present, orienting, but not demanding. I went on a long walk yesterday along the river and I just felt grateful. Not for anything specific. For being a thing that can walk and notice and feel. I know that sounds like a cliche and maybe it is but the feeling was real. I also did a breathwork session on my own for the first time and was able to go pretty deep without panicking. That felt like evidence that something is actually integrating rather than just being processed intellectually.",
+                    "emotions": {
+                        "gratitude": 0.81,
+                        "joy": 0.69,
+                        "confusion": 0.22,
+                        "grief": 0.28
+                    },
+                    "themes": [
+                        "gratitude",
+                        "embodiment",
+                        "nature connection",
+                        "integration progress"
+                    ],
+                    "recommendations": [
+                        "gratitude journaling",
+                        "nature walks",
+                        "continued breathwork"
+                    ]
+                },
+                {
+                    "entry_id": "entry_010",
+                    "date": "2026-02-28",
+                    "text": "I've been thinking about what I actually want to carry forward from this. Not the peak experience itself -- that belongs to where it happened. But the quality of attention it showed me was possible. That's what I want access to in ordinary life. I've started meditating in the mornings, just ten minutes, and it's not nothing. I called my dad last week. We didn't talk about anything meaningful but I spoke to him more warmly than I usually do and I meant it. That's a real thing. It's small and real. I think that's actually what integration looks like -- not transformation, just small and real things accumulating.",
+                    "emotions": {
+                        "gratitude": 0.77,
+                        "joy": 0.65,
+                        "grief": 0.31,
+                        "overwhelm": 0.14
+                    },
+                    "themes": [
+                        "values clarification",
+                        "intention setting",
+                        "family relationships",
+                        "integration insight"
+                    ],
+                    "recommendations": [
+                        "daily meditation",
+                        "gratitude journaling",
+                        "letter writing exercise"
+                    ]
+                },
+                {
+                    "entry_id": "entry_011",
+                    "date": "2026-03-05",
+                    "text": "Six weeks. I feel like myself again, except the self feels a little more spacious than before. That's the best description I have. There's still grief when I touch certain things, still confusion sometimes about who I'm becoming, but it's all more workable. Less like weather I'm trapped in and more like weather I'm inside of, which sounds like the same thing but doesn't feel like it. I'm going to keep journaling. I'm going to keep the breathwork. I want to do some IFS work more intentionally with my therapist around the parts I noticed during integration. The experience was enormous. This is what I did with it. That feels like enough for now.",
+                    "emotions": {
+                        "gratitude": 0.84,
+                        "joy": 0.71,
+                        "grief": 0.33,
+                        "confusion": 0.19
+                    },
+                    "themes": [
+                        "integration completion",
+                        "self-acceptance",
+                        "ongoing practice",
+                        "identity integration"
+                    ],
+                    "recommendations": [
+                        "IFS parts work",
+                        "continued meditation",
+                        "therapist collaboration"
+                    ]
+                },
+                {
+                    "entry_id": "entry_012",
+                    "date": "2026-02-26",
+                    "text": "I'm at peace. This is the most calm I have felt in my adult life. Even though life changes keep happening, I feel ready and resourced to face those changes.",
+                    "emotions": {
+                        "awe": 0.3808,
+                        "joy": 0.7596,
+                        "gratitude": 0.6646,
+                        "calm": 0.3099
+                    },
+                    "themes": [
+                        "gratitude and acceptance",
+                        "meaning-making",
+                        "inner parts work",
+                        "body and somatic",
+                        "spiritual experience",
+                        "family relationships",
+                        "identity shift",
+                        "nature connection",
+                        "awe and transcendence",
+                        "ongoing practice",
+                        "boundary dissolution",
+                        "integration difficulty",
+                        "grief and loss",
+                        "ego dissolution"
+                    ],
+                    "recommendations": [
+                        "IFS parts work",
+                        "therapist consultation",
+                        "nature walk",
+                        "grounding breathwork"
+                    ]
+                },
+                {
+                    "entry_id": "entry_013",
+                    "date": "2026-02-26",
+                    "text": "i'm super grateful for the experience. i feel more connected to nature than ever.",
+                    "emotions": {
+                        "awe": 0.3991,
+                        "joy": 0.7948,
+                        "gratitude": 0.6955,
+                        "calm": 0.2986
+                    },
+                    "themes": [
+                        "nature connection",
+                        "gratitude and acceptance",
+                        "meaning-making",
+                        "awe and transcendence",
+                        "identity shift",
+                        "inner parts work",
+                        "integration difficulty",
+                        "spiritual experience",
+                        "boundary dissolution",
+                        "body and somatic"
+                    ],
+                    "recommendations": [
+                        "IFS parts work",
+                        "nature journaling",
+                        "nature walk",
+                        "somatic grounding exercise"
+                    ]
+                },
+                {
+                    "entry_id": "entry_014",
+                    "date": "2026-02-26",
+                    "text": "i don't what to say.",
+                    "emotions": {
+                        "overwhelm": 0.3975,
+                        "grief": 0.7852,
+                        "confusion": 0.2156
+                    },
+                    "themes": [
+                        "confusion and disorientation",
+                        "integration difficulty",
+                        "grief and loss",
+                        "fear and anxiety",
+                        "family relationships",
+                        "body and somatic",
+                        "awe and transcendence",
+                        "identity shift",
+                        "boundary dissolution"
+                    ],
+                    "recommendations": [
+                        "therapist consultation",
+                        "IFS parts work",
+                        "grounding breathwork",
+                        "body scan meditation"
+                    ]
+                }
+            ]
+        }
+    ]
+}

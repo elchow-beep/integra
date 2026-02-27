@@ -1,0 +1,26 @@
+# Core
+python-dotenv
+
+# HuggingFace Inference API
+huggingface_hub
+
+# RAG & LLM
+langchain
+langchain-community
+langchain-openai
+langchain-chroma
+openai
+chromadb
+tiktoken
+
+# NLP / ML utilities
+scikit-learn
+
+# Data
+pandas
+numpy
+requests
+
+# App
+streamlit
+altair
