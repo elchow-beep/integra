@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg:              #1c1a18;
+  --surface:         #242220;
+  --surface-raised:  #2e2b28;
+  --border:          #3a3733;
+  --text-primary:    #e8e3db;
+  --text-secondary:  #8a8480;
+  --text-muted:      #5a5652;
+  --accent:          #c4956a;
+  --accent-soft:     rgba(196, 149, 106, 0.10);
+  --accent-border:   rgba(196, 149, 106, 0.20);
+
+  --awe:       #7b9ea6;
+  --overwhelm: #9b7fa6;
+  --fear:      #a67b7b;
+  --grief:     #7a8fa6;
+  --confusion: #a69b7b;
+  --joy:       #a6c47b;
+  --gratitude: #c4956a;
+  --calm:      #7ba68f;
+
+  --font-display: 'DM Serif Display', Georgia, serif;
+  --font-body:    'DM Sans', system-ui, sans-serif;
+
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  14px;
+  --radius-xl:  20px;
+}
+
+html, body, #root {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar -- hidden on mobile, minimal on desktop */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }

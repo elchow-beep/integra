@@ -1,0 +1,402 @@
+import { useEffect, useState } from "react";
+import { getEntries, createEntry } from "../api.js";
+import EmotionPill from "../components/EmotionPill.jsx";
+
+/**
+ * Journal.jsx
+ *
+ * Two modes:
+ *   "browse" -- scrollable list of past entries, each expandable
+ *   "write"  -- full-screen text entry form with live submit
+ *
+ * After submitting an entry, analysis results (emotions, themes,
+ * recommendations) are shown inline before returning to browse mode.
+ */
+
+function formatDate(dateStr) {
+  if (!dateStr) return "";
+  const d = new Date(dateStr + "T00:00:00");
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+const s = {
+  screen: {
+    minHeight: "100vh",
+    background: "var(--bg)",
+    paddingBottom: "80px",
+  },
+  header: {
+    padding: "52px 20px 0",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  title: {
+    fontFamily: "var(--font-display)",
+    fontSize: "24px",
+    color: "var(--text-primary)",
+  },
+  newBtn: {
+    background: "var(--accent)",
+    border: "none",
+    borderRadius: "10px",
+    padding: "8px 16px",
+    fontSize: "13px",
+    fontWeight: 500,
+    color: "#1c1a18",
+    cursor: "pointer",
+    fontFamily: "var(--font-body)",
+    letterSpacing: "0.02em",
+  },
+  list: {
+    padding: "20px 20px 0",
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+  },
+  entryCard: {
+    background: "var(--surface)",
+    border: "1px solid var(--border)",
+    borderRadius: "var(--radius-md)",
+    padding: "14px",
+    cursor: "pointer",
+    transition: "border-color 0.15s ease",
+  },
+  entryDate: {
+    fontSize: "11px",
+    color: "var(--text-muted)",
+    marginBottom: "5px",
+  },
+  entryPreview: {
+    fontSize: "13px",
+    color: "var(--text-primary)",
+    lineHeight: 1.5,
+    marginBottom: "8px",
+  },
+  pillRow: {
+    display: "flex",
+    gap: "5px",
+    flexWrap: "wrap",
+  },
+  expandedBody: {
+    marginTop: "12px",
+    paddingTop: "12px",
+    borderTop: "1px solid var(--border)",
+  },
+  expandedText: {
+    fontSize: "13px",
+    fontWeight: 300,
+    color: "var(--text-secondary)",
+    lineHeight: 1.7,
+    marginBottom: "12px",
+    whiteSpace: "pre-wrap",
+  },
+  sectionLabel: {
+    fontSize: "10px",
+    fontWeight: 500,
+    letterSpacing: "0.10em",
+    textTransform: "uppercase",
+    color: "var(--text-muted)",
+    marginBottom: "6px",
+    marginTop: "12px",
+  },
+  themeChip: {
+    fontSize: "11px",
+    padding: "2px 8px",
+    borderRadius: "4px",
+    background: "var(--surface-raised)",
+    color: "var(--text-secondary)",
+    border: "1px solid var(--border)",
+  },
+  recItem: {
+    fontSize: "12px",
+    fontWeight: 300,
+    color: "var(--text-secondary)",
+    padding: "6px 0",
+    borderBottom: "1px solid var(--border)",
+    lineHeight: 1.4,
+  },
+  // Write mode
+  writeScreen: {
+    minHeight: "100vh",
+    background: "var(--bg)",
+    padding: "52px 20px 100px",
+    display: "flex",
+    flexDirection: "column",
+  },
+  writeHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: "24px",
+  },
+  backBtn: {
+    background: "transparent",
+    border: "1px solid var(--border)",
+    borderRadius: "8px",
+    padding: "7px 14px",
+    fontSize: "12px",
+    color: "var(--text-secondary)",
+    cursor: "pointer",
+    fontFamily: "var(--font-body)",
+  },
+  writeTitle: {
+    fontFamily: "var(--font-display)",
+    fontSize: "22px",
+    color: "var(--text-primary)",
+    marginBottom: "4px",
+  },
+  writeSub: {
+    fontSize: "12px",
+    fontWeight: 300,
+    color: "var(--text-muted)",
+    marginBottom: "20px",
+  },
+  textarea: {
+    width: "100%",
+    flex: 1,
+    minHeight: "220px",
+    background: "var(--surface)",
+    border: "1px solid var(--border)",
+    borderRadius: "var(--radius-md)",
+    padding: "16px",
+    fontSize: "14px",
+    fontWeight: 300,
+    color: "var(--text-primary)",
+    fontFamily: "var(--font-body)",
+    lineHeight: 1.7,
+    resize: "vertical",
+    outline: "none",
+    marginBottom: "16px",
+  },
+  submitBtn: {
+    background: "var(--accent)",
+    border: "none",
+    borderRadius: "10px",
+    padding: "14px",
+    fontSize: "14px",
+    fontWeight: 500,
+    color: "#1c1a18",
+    cursor: "pointer",
+    fontFamily: "var(--font-body)",
+    letterSpacing: "0.02em",
+    width: "100%",
+  },
+  resultCard: {
+    background: "var(--surface)",
+    border: "1px solid var(--border)",
+    borderRadius: "var(--radius-lg)",
+    padding: "18px",
+    marginBottom: "16px",
+  },
+  emptyState: {
+    textAlign: "center",
+    padding: "60px 20px",
+    color: "var(--text-muted)",
+    fontSize: "13px",
+    fontWeight: 300,
+    lineHeight: 1.7,
+  },
+};
+
+function EntryCard({ entry }) {
+  const [expanded, setExpanded] = useState(false);
+  const topEmotions = Object.entries(entry.emotions || {})
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3);
+
+  return (
+    <div
+      style={{
+        ...s.entryCard,
+        borderColor: expanded ? "var(--accent)" : "var(--border)",
+      }}
+      onClick={() => setExpanded(!expanded)}
+    >
+      <div style={s.entryDate}>{formatDate(entry.date)}{entry.week_number ? ` · Week ${entry.week_number}` : ""}</div>
+      <div style={{
+        ...s.entryPreview,
+        display: "-webkit-box",
+        WebkitLineClamp: expanded ? "none" : 2,
+        WebkitBoxOrient: "vertical",
+        overflow: expanded ? "visible" : "hidden",
+      }}>
+        {entry.text}
+      </div>
+      <div style={s.pillRow}>
+        {topEmotions.map(([emotion, score]) => (
+          <EmotionPill key={emotion} emotion={emotion} score={score} />
+        ))}
+      </div>
+
+      {expanded && (
+        <div style={s.expandedBody}>
+          {entry.themes?.length > 0 && (
+            <>
+              <div style={s.sectionLabel}>Themes</div>
+              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                {entry.themes.map((t) => (
+                  <span key={t} style={s.themeChip}>{t}</span>
+                ))}
+              </div>
+            </>
+          )}
+          {entry.recommendations?.length > 0 && (
+            <>
+              <div style={s.sectionLabel}>Suggested practices</div>
+              {entry.recommendations.map((r, i) => (
+                <div key={i} style={s.recItem}>{r}</div>
+              ))}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function Journal({ user, onEntrySubmitted }) {
+  const [mode, setMode] = useState("browse");
+  const [entries, setEntries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [text, setText] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!user) return;
+    setLoading(true);
+    getEntries(user.user_id)
+      .then((data) => {
+        setEntries(data.entries);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [user]);
+
+  function handleSubmit() {
+    if (!text.trim()) return;
+    setSubmitting(true);
+    setError(null);
+    createEntry(user.user_id, text.trim())
+      .then((data) => {
+        setResult(data.entry);
+        setEntries((prev) => [data.entry, ...prev]);
+        onEntrySubmitted(text.trim());
+        setSubmitting(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setSubmitting(false);
+      });
+  }
+
+  if (mode === "write") {
+    return (
+      <div style={s.writeScreen}>
+        <div style={s.writeHeader}>
+          <button style={s.backBtn} onClick={() => { setMode("browse"); setResult(null); setText(""); }}>
+            Back
+          </button>
+          <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+            {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+          </span>
+        </div>
+
+        {result ? (
+          <>
+            <div style={s.writeTitle}>Entry saved.</div>
+            <div style={s.writeSub}>Here's what Integra found.</div>
+
+            <div style={s.resultCard}>
+              <div style={s.sectionLabel}>Emotions detected</div>
+              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "16px" }}>
+                {Object.entries(result.emotions || {})
+                  .sort((a, b) => b[1] - a[1])
+                  .map(([emotion, score]) => (
+                    <EmotionPill key={emotion} emotion={emotion} score={score} size="md" />
+                  ))}
+              </div>
+
+              {result.themes?.length > 0 && (
+                <>
+                  <div style={s.sectionLabel}>Themes</div>
+                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "16px" }}>
+                    {result.themes.map((t) => (
+                      <span key={t} style={s.themeChip}>{t}</span>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {result.recommendations?.length > 0 && (
+                <>
+                  <div style={s.sectionLabel}>Suggested practices</div>
+                  {result.recommendations.map((r, i) => (
+                    <div key={i} style={s.recItem}>{r}</div>
+                  ))}
+                </>
+              )}
+            </div>
+
+            <button style={s.submitBtn} onClick={() => { setMode("browse"); setResult(null); setText(""); }}>
+              Back to journal
+            </button>
+          </>
+        ) : (
+          <>
+            <div style={s.writeTitle}>Today's entry</div>
+            <div style={s.writeSub}>Write freely. There's no right way.</div>
+
+            <textarea
+              style={s.textarea}
+              placeholder="What's coming up for you today..."
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              autoFocus
+            />
+
+            {error && (
+              <p style={{ color: "#a67b7b", fontSize: "12px", marginBottom: "12px" }}>{error}</p>
+            )}
+
+            <button
+              style={{ ...s.submitBtn, opacity: submitting || !text.trim() ? 0.5 : 1 }}
+              onClick={handleSubmit}
+              disabled={submitting || !text.trim()}
+            >
+              {submitting ? "Analyzing..." : "Save entry"}
+            </button>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div style={s.screen}>
+      <div style={s.header}>
+        <h1 style={s.title}>Journal</h1>
+        <button style={s.newBtn} onClick={() => setMode("write")}>+ New entry</button>
+      </div>
+
+      {loading && (
+        <p style={{ color: "var(--text-muted)", fontSize: "13px", padding: "20px" }}>Loading entries...</p>
+      )}
+
+      {!loading && entries.length === 0 && (
+        <div style={s.emptyState}>
+          <p style={{ marginBottom: "8px" }}>No entries yet.</p>
+          <p>Tap "New entry" to begin your integration journey.</p>
+        </div>
+      )}
+
+      <div style={s.list}>
+        {entries.map((entry) => (
+          <EntryCard key={entry.entry_id} entry={entry} />
+        ))}
+      </div>
+    </div>
+  );
+}
