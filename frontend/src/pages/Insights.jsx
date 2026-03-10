@@ -13,14 +13,14 @@ import {
  */
 
 const EMOTION_COLORS = {
-  awe:       "#7b9ea6",
+  awe: "#7b9ea6",
   overwhelm: "#9b7fa6",
-  fear:      "#a67b7b",
-  grief:     "#7a8fa6",
+  fear: "#a67b7b",
+  grief: "#7a8fa6",
   confusion: "#a69b7b",
-  joy:       "#a6c47b",
+  joy: "#a6c47b",
   gratitude: "#c4956a",
-  calm:      "#7ba68f",
+  calm: "#7ba68f",
 };
 
 const INTEGRA_EMOTIONS = ["awe", "overwhelm", "fear", "grief", "confusion", "joy", "gratitude", "calm"];
@@ -198,9 +198,11 @@ export default function Insights({ user }) {
     date: formatDateShort(row.date),
   }));
 
-  const themeFreq = Object.entries(data.theme_frequency || {})
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 8);
+  const rawThemeFreq = data.theme_frequency || [];
+  const themeFreq = (Array.isArray(rawThemeFreq)
+    ? rawThemeFreq
+    : Object.entries(rawThemeFreq)
+  ).sort((a, b) => b[1] - a[1]).slice(0, 8);
   const maxThemeCount = themeFreq[0]?.[1] || 1;
 
   return (
