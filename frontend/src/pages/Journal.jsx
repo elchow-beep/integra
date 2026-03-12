@@ -21,6 +21,14 @@ function formatDate(dateStr) {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
+function getWeekNumber(entryDateStr, firstEntryDateStr) {
+  if (!entryDateStr || !firstEntryDateStr) return null;
+  const entry = new Date(entryDateStr + "T00:00:00");
+  const first = new Date(firstEntryDateStr + "T00:00:00");
+  const diffDays = Math.floor((entry - first) / (1000 * 60 * 60 * 24));
+  return Math.floor(diffDays / 7) + 1;
+}
+
 const s = {
   screen: {
     minHeight: "100vh",
@@ -243,7 +251,8 @@ const s = {
   },
 };
 
-function EntryCard({ entry }) {
+function EntryCard({ entry, firstEntryDate }) {
+  const weekNum = entry.week_number || getWeekNumber(entry.date, firstEntryDate);
   const [expanded, setExpanded] = useState(false);
   const topEmotions = Object.entries(entry.emotions || {})
     .sort((a, b) => b[1] - a[1])
@@ -254,7 +263,7 @@ function EntryCard({ entry }) {
       style={{ ...s.entryCard, borderColor: expanded ? "var(--accent)" : "var(--border)" }}
       onClick={() => setExpanded(!expanded)}
     >
-      <div style={s.entryDate}>{formatDate(entry.date)}{entry.week_number ? ` · Week ${entry.week_number}` : ""}</div>
+      <div style={s.entryDate}>{formatDate(entry.date)}{weekNum ? ` · Week ${weekNum}` : ""}</div>
       <div style={{ ...s.entryPreview, display: "-webkit-box", WebkitLineClamp: expanded ? "none" : 2, WebkitBoxOrient: "vertical", overflow: expanded ? "visible" : "hidden" }}>
         {entry.text}
       </div>
@@ -445,7 +454,11 @@ export default function Journal({ user, onEntrySubmitted }) {
       {!loading && entries.length > 0 && (
         <div style={s.list}>
           {entries.map((entry) => (
-            <EntryCard key={entry.entry_id} entry={entry} />
+            <EntryCard
+              key={entry.entry_id}
+              entry={entry}
+              firstEntryDate={entries[entries.length - 1]?.date}
+            />
           ))}
         </div>
       )}
