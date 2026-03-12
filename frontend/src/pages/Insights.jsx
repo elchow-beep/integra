@@ -175,8 +175,46 @@ export default function Insights({ user }) {
   if (loading) {
     return (
       <div style={s.screen}>
-        <div style={s.header}><h1 style={s.title}>Insights</h1></div>
-        <p style={{ padding: "20px", color: "var(--text-muted)", fontSize: "13px" }}>Loading...</p>
+        <div style={s.header}>
+          <h1 style={s.title}>Insights</h1>
+          <p style={s.sub}>Your emotional arc over time</p>
+        </div>
+        {/* Arc summary skeleton */}
+        <div style={s.section}>
+          <div className="skeleton" style={{ width: "60px", height: "10px", borderRadius: "4px", marginBottom: "14px", animationDelay: "0s" }} />
+          <div style={s.card}>
+            <div className="skeleton" style={{ width: "100%", height: "12px", borderRadius: "4px", marginBottom: "8px", animationDelay: "0.05s" }} />
+            <div className="skeleton" style={{ width: "88%", height: "12px", borderRadius: "4px", marginBottom: "8px", animationDelay: "0.08s" }} />
+            <div className="skeleton" style={{ width: "70%", height: "12px", borderRadius: "4px", animationDelay: "0.11s" }} />
+          </div>
+        </div>
+        {/* Emotion timeline skeleton */}
+        <div style={s.section}>
+          <div className="skeleton" style={{ width: "100px", height: "10px", borderRadius: "4px", marginBottom: "14px", animationDelay: "0.1s" }} />
+          <div style={s.card}>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "16px" }}>
+              {[72, 56, 44, 64, 52, 36, 60, 48].map((w, i) => (
+                <div key={i} className="skeleton" style={{ width: `${w}px`, height: "20px", borderRadius: "10px", animationDelay: `${0.1 + i * 0.04}s` }} />
+              ))}
+            </div>
+            <div className="skeleton" style={{ width: "100%", height: "200px", borderRadius: "8px", animationDelay: "0.15s" }} />
+          </div>
+        </div>
+        {/* Theme frequency skeleton */}
+        <div style={s.section}>
+          <div className="skeleton" style={{ width: "110px", height: "10px", borderRadius: "4px", marginBottom: "14px", animationDelay: "0.2s" }} />
+          <div style={s.card}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              {[85, 70, 60, 75, 50, 65].map((w, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div className="skeleton" style={{ width: "120px", height: "12px", borderRadius: "4px", flexShrink: 0, animationDelay: `${0.2 + i * 0.04}s` }} />
+                  <div className="skeleton" style={{ flex: 1, height: "4px", borderRadius: "2px", animationDelay: `${0.22 + i * 0.04}s` }} />
+                  <div className="skeleton" style={{ width: "18px", height: "12px", borderRadius: "4px", flexShrink: 0, animationDelay: `${0.24 + i * 0.04}s` }} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

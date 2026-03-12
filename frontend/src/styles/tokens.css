@@ -60,3 +60,14 @@ html, body, #root {
 .page-transition {
   animation: pageFadeIn 0.18s ease-out both;
 }
+
+/* Skeleton loading */
+@keyframes skeletonPulse {
+  0%, 100% { opacity: 0.35; }
+  50%       { opacity: 0.75; }
+}
+
+.skeleton {
+  background: var(--surface-raised);
+  animation: skeletonPulse 1.4s ease-in-out infinite;
+}

@@ -86,10 +86,10 @@ integra/
 │   │   │   └── tokens.css           # Design tokens (colors, fonts, radius, spacing)
 │   │   ├── pages/
 │   │   │   ├── Login.jsx            # Profile cards, guest mode, disclaimer chip
-│   │   │   ├── Home.jsx             # Greeting, mood check-in, last entry, arc summary
-│   │   │   ├── Journal.jsx          # Entry list + new entry submission + analysis results
+│   │   │   ├── Home.jsx             # Greeting, mood check-in, last entry, arc summary, loading skeleton, empty state
+│   │   │   ├── Journal.jsx          # Entry list + new entry submission + analysis results + Reflect with Indy CTA
 │   │   │   ├── Insights.jsx         # Emotion timeline (Recharts), theme frequency chart, arc summary
-│   │   │   └── Companion.jsx        # Indy chat interface with crisis detection
+│   │   │   └── Companion.jsx        # Indy chat interface with crisis detection, rotating thinking phrases, 988 call button
 │   │   └── components/
 │   │       ├── BottomNav.jsx        # Persistent tab bar (Home / Journal / Insights / Indy)
 │   │       └── EmotionPill.jsx      # Reusable colored emotion chip
@@ -171,6 +171,7 @@ Demonstrates longitudinal emotion tracking, pattern visualization over time, RAG
 - Emotions below 0.2 confidence threshold filtered from output
 - Retry loop: 3 attempts with 5s delay for cold-start resilience
 - Known limitation: gratitude-dominant text returns joy as dominant (RoBERTa has no gratitude label); scores are still meaningful
+- `analyze()` returns a dict with keys `base_emotions`, `integra_emotions`, `dominant_emotion` -- backend extracts `integra_emotions` for entry storage
 
 ### Theme Extractor (`src/nlp/theme_extractor.py`)
 - Uses HuggingFace Inference API via `InferenceClient.zero_shot_classification()` -- no local model download
@@ -184,6 +185,7 @@ Demonstrates longitudinal emotion tracking, pattern visualization over time, RAG
 - Pure Python weighted mapping: theme -> list of practices with weights
 - Score ranking returns top 3 practices per entry
 - 16 themes mapped to practices across categories: breathwork, somatic, IFS, journaling, nature, therapist resources
+- Exposed as `RecommendationEngine` class -- call via `RecommendationEngine().recommend(themes)`
 
 ### RAG Pipeline (`src/rag/rag_pipeline.py`)
 - LangChain + ChromaDB + OpenAI GPT-4o
@@ -195,7 +197,8 @@ Demonstrates longitudinal emotion tracking, pattern visualization over time, RAG
 ### Crisis Detection (`src/rag/crisis_detection.py`)
 - Keyword layer: exact match against curated list of crisis phrases
 - Semantic layer: cosine similarity against crisis reference sentences
-- If triggered: returns 988 Suicide and Crisis Lifeline message, skips LLM call entirely
+- If triggered: returns shortened 988 Suicide and Crisis Lifeline message (2 sentences), skips LLM call entirely
+- Frontend shows a tappable `<a href="tel:988">` call button below the crisis message
 
 ### Longitudinal Tracker (`src/nlp/longitudinal_tracker.py`)
 - Computes emotion timeline, dominant emotions, theme frequency, recommendation frequency, weekly averages, arc summary
@@ -239,16 +242,18 @@ React app built with Vite. All pages are protected routes -- redirects to `/logi
 
 ### Pages
 - **Login** -- gradient logo SVG, profile cards (tap to select, amber border on selection), "Continue to Journal" primary button, "Chat with Indy as a guest" ghost button, disclaimer chip
-- **Home** -- greeting with time of day, date eyebrow, quick mood check-in pills, "Write an entry" CTA card, last entry preview with emotion pills, arc summary card, "Switch profile" button in header
-- **Journal** -- entry list sorted newest first, emotion pills per entry, "+ New entry" button, entry submission form with pipeline results
-- **Insights** -- arc summary card, emotion timeline line chart (Recharts), recurring themes bar chart
-- **Companion** -- Indy chat interface, disclaimer chip, "Clear chat" button, message input + send
+- **Home** -- greeting with time of day, date eyebrow, quick mood check-in pills, "Write an entry" CTA card, pulsing skeleton loading state, last entry preview with emotion pills, arc summary card, "Getting started" empty state for new users, "Switch profile" button in header
+- **Journal** -- entry list sorted newest first, emotion pills per entry, "+ New entry" button, entry submission form with pipeline results, "Reflect with Indy" primary CTA after submission, styled empty state for new users
+- **Insights** -- arc summary card, emotion timeline line chart (Recharts), recurring themes horizontal bar chart
+- **Companion** -- Indy chat interface, disclaimer chip, rotating thinking phrases, "Clear chat" button with confirmation banner, 988 call button on crisis responses, guest mode welcome note
 
 ### Key decisions
 - `App.jsx` holds user state and passes `onSwitchProfile` down to Home
 - `api.js` uses `VITE_API_URL` env variable with localhost fallback
 - Logo imported as React component via `vite-plugin-svgr` using `?react` query syntax
 - `vercel.json` rewrites all routes to `index.html` for client-side routing
+- `theme_frequency` from backend is an array of `[name, count]` pairs -- `Insights.jsx` handles this directly without `Object.entries()`
+- Guest users bypass all fetch calls in `Home.jsx` useEffect -- `setDataLoaded(true)` fires immediately so skeleton blocks don't hang
 
 ---
 
@@ -443,6 +448,81 @@ HF_TOKEN=your_token
 - Both services auto-deploy on every push to `main` -- no manual deploy step needed
 - HuggingFace Space preserved but no longer updated
 
+### Session 11 -- March 4, 2026
+- Fixed page title: changed from "Vite App" to "Integra" in `frontend/index.html`
+- Fixed favicon: removed duplicate vite.svg link, confirmed logo SVG favicon rendering in browser tab
+- Added max-width container in `App.jsx`: 480px centered column with `#111010` gutter background, `position: relative` on inner div for BottomNav containment
+- Fixed `BottomNav.jsx`: replaced `left: 0, right: 0` with `left: 50%` + `transform: translateX(-50%)` + `maxWidth: 480px` so nav bar stays within the content column on desktop
+- Fixed `Home.jsx` writeCard overflow: removed `width: "100%"`, added `boxSizing: "border-box"` so margin-based inset works correctly
+
+### Session 12 -- March 9, 2026
+- Fixed recurring themes chart label bug in `Insights.jsx`: backend returns `theme_frequency` as an array of `[name, count]` pairs, not a dict -- `Object.entries()` on an array produces numeric keys, causing index numbers on the Y axis and concatenated label+count strings. Updated data mapping to handle the array shape directly.
+- Fixed recurring themes chart axis bug: resolved by the same fix -- index numbers (0, 1, 2...) were a symptom of the same `Object.entries()` misuse.
+- Wrote demo script (`integra_demo_script.md`): 7-part flow covering login, home, journal browse, live entry submission, insights, Indy chat, and Alex empty state. Includes exact text to type, timing targets per section, and a backup recovery table for common failure modes.
+- Built slide deck in Canva: 13 slides covering context, problem, solution, ML pipeline, knowledge base, safety design, Jordan's arc, tech stack, limitations, and live demo transition.
+- Wrote slide deck outline (`integra_slide_outline.md`) and style guide (`integra_style_guide.md`) as reference documents.
+
+**Key decisions:**
+- theme_frequency bug was a frontend data-shape mismatch, not a backend issue -- fix was one line change in Insights.jsx, no backend changes needed
+
+### Session 13 -- March 11, 2026
+- Completed evaluation metrics and model documentation for capstone submission.
+- Tier 1 now fully complete.
+
+### Session 14 -- March 11, 2026
+- Completed all Tier 2 polish items:
+  - Rotating Indy thinking phrases via `randomThinkingPhrase()` in `Companion.jsx`
+  - 1500ms thinking delay before crisis response renders in `Companion.jsx`
+  - Shortened 988 crisis response to 2 sentences in `crisis_detection.py`
+  - 988 call button (`<a href="tel:988">`) renders below crisis message in `Companion.jsx`
+  - "Reflect with Indy" primary CTA on entry results screen in `Journal.jsx`
+  - Home empty state for new users: "Getting started" card with three numbered steps in `Home.jsx`
+  - Journal empty state: styled card with "Write your first entry" CTA in `Journal.jsx`
+  - Clear chat confirmation banner with Clear/Cancel buttons in `Companion.jsx`
+  - Guest mode welcome note in Indy empty state in `Companion.jsx`
+  - Pulsing skeleton blocks on Home while data fetches in `Home.jsx`
+- Fixed `backend/main.py` bug: `ep.analyze()` returns a nested dict -- updated `create_entry` to extract `integra_emotions` key instead of storing the full result.
+- Fixed `backend/main.py` bug: recommendation engine is a class -- updated `create_entry` to use `RecommendationEngine().recommend(themes)` instead of the nonexistent `recommend_practices()` function.
+- Fixed guest user 404s: added `user.user_id === "guest"` guard in `Home.jsx` useEffect with immediate `setDataLoaded(true)` so skeleton blocks don't hang indefinitely for guest users.
+- Fixed slide deck typo: "GOT-4o" corrected to "GPT-4o" on RAG slide in Canva.
+
+**Key decisions:**
+- Guest path on Home bypasses both fetch calls entirely and goes straight to loaded state -- no empty state shown for guests since they have no profile context to display
+- Confirm dialog skipped for guest chat clear -- no history worth protecting, clears immediately
+
+### Session 15 -- March 11, 2026
+- Fixed week number on journal entries: computed `week_number` from entry date relative to user's first entry date instead of leaving it null. · *~30min*
+- Added page transition animations: `pageFadeIn` keyframe (opacity 0->1, translateY 6px->0, 0.18s ease-out) added to `tokens.css`. `.page-transition` class applied via keyed wrapper div in `App.jsx`.
+- Refactored `App.jsx` to extract `AppRoutes` inner component so `useLocation` can be called inside `BrowserRouter` -- required for the transition key pattern.
+
+**Key decisions:**
+- `useLocation` must live inside `BrowserRouter` -- extracting `AppRoutes` as a named inner component is the clean pattern for this, avoids wrapping the entire router
+- Transition duration kept at 0.18s to feel snappy on mobile rather than sluggish
+
+### Session 16 -- March 11, 2026
+- Built quick check-in emotion pill flow (Tier 3).
+- Added `BottomSheet.jsx` component (`frontend/src/components/`): reusable slide-up sheet with backdrop, scroll lock, drag handle, and `sheetSlideUp` keyframe animation.
+- Updated `Home.jsx`: tapping a mood pill calls `handlePillTap(emotion)`, opens BottomSheet with the selected emotion displayed, two action buttons: "Chat with Indy" navigates to `/companion` with `checkinEmotion` in router state; "Just log it" calls `POST /checkin` and shows inline "Logging..." / "Logged" feedback before auto-closing.
+- Updated `api.js`: added `postCheckin(userId, emotion)` calling `POST /checkin`.
+- Updated `Companion.jsx`: reads `checkinEmotion` from `useLocation().state`; if present, injects Indy's opening message on mount ("You checked in as [emotion] -- want to tell me what's going on?"); tracks `userMessageCount` on every send; after 3 user messages shows a "Save as journal entry" banner above the input; banner has Dismiss and "Save as entry" buttons; saving posts transcript to `POST /entries` with `entry_type: "checkin"`.
+- Updated `backend/main.py`: added `CheckinRequest` Pydantic model and `POST /checkin` endpoint; appends a minimal entry (entry_type "checkin", emotion score 1.0, empty text/themes/recs) to the user's entries in `users.json`; added `entry_type: str = "journal"` and `checkin_emotion: str | None = None` optional fields to existing `EntryRequest` model; `create_entry` passes `entry_type` through to the stored entry dict.
+
+**Key decisions:**
+- `BottomSheet.jsx` extracted as its own component -- reusable if needed elsewhere later
+- Checkin opening message injected client-side on mount rather than via a backend call -- keeps the flow fast and avoids an extra round trip
+- Save banner appears after 3 user messages and only once per session -- `saveBannerVisible` stays false until threshold is crossed, then dismissing hides it permanently for that session
+- `entry_type: "checkin"` flag stored on the entry so Insights can distinguish check-ins from full journal entries in future filtering
+
+### Session 17 -- March 11, 2026
+- Fixed BottomSheet z-index: raised from 200 to 300 so sheet renders above the bottom nav bar.
+- Fixed BottomSheet bottom padding: increased from 40px to 88px (64px nav height + 24px clearance) so buttons are not obscured by the nav bar.
+- Fixed page transition animation: removed `translateY` from `pageFadeIn` keyframe in `tokens.css`. Transition is now a pure opacity fade (0.18s ease-out). The previous vertical movement read as layout reflow rather than intentional animation on mobile.
+
+**Key decisions:**
+- Pure fade chosen over slide variants -- no directional movement avoids the viewport-adjustment visual artifact on mobile
+- `App.jsx` unchanged -- the fix was entirely in `tokens.css`
+
+
 ---
 
 ## How to Use This Brief
@@ -450,4 +530,4 @@ Paste the contents of this file at the start of any new Claude conversation to i
 
 ---
 
-*Last updated: March 2, 2026 -- Session 10 complete*
+*Last updated: March 11, 2026 -- Session 15 complete*

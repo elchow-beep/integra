@@ -436,7 +436,24 @@ export default function Journal({ user, onEntrySubmitted }) {
       </div>
 
       {loading && (
-        <p style={{ color: "var(--text-muted)", fontSize: "13px", padding: "20px" }}>Loading entries...</p>
+        <div style={s.list}>
+          {[0, 1, 2].map((i) => (
+            <div key={i} style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border)",
+              borderRadius: "var(--radius-md)",
+              padding: "14px",
+            }}>
+              <div className="skeleton" style={{ width: "80px", height: "11px", borderRadius: "4px", marginBottom: "10px", animationDelay: `${i * 0.1}s` }} />
+              <div className="skeleton" style={{ width: "65%", height: "13px", borderRadius: "4px", marginBottom: "6px", animationDelay: `${i * 0.1 + 0.05}s` }} />
+              <div className="skeleton" style={{ width: "45%", height: "13px", borderRadius: "4px", marginBottom: "10px", animationDelay: `${i * 0.1 + 0.08}s` }} />
+              <div style={{ display: "flex", gap: "6px" }}>
+                <div className="skeleton" style={{ width: "64px", height: "20px", borderRadius: "10px", animationDelay: `${i * 0.1 + 0.1}s` }} />
+                <div className="skeleton" style={{ width: "48px", height: "20px", borderRadius: "10px", animationDelay: `${i * 0.1 + 0.15}s` }} />
+              </div>
+            </div>
+          ))}
+        </div>
       )}
 
       {!loading && entries.length === 0 && (
