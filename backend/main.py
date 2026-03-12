@@ -169,11 +169,13 @@ def get_insights(user_id: str):
 def create_entry(req: NewEntryRequest):
     ep = get_emotion_pipeline()
     te = get_theme_extractor()
-    emotions = ep.analyze(req.text)
+    emotion_result = ep.analyze(req.text)
+    emotions = emotion_result.get("integra_emotions", {})
     themes = te.extract(req.text)
 
-    from src.recommender.recommendation_engine import recommend_practices
-    recommendations = recommend_practices(themes)
+    from src.recommender.recommendation_engine import RecommendationEngine
+    rec_engine = RecommendationEngine()
+    recommendations = rec_engine.recommend(themes)
 
     entry = {
         "entry_id": str(uuid.uuid4()),
