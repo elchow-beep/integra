@@ -56,20 +56,103 @@ const s = {
   entryTitle: { fontSize: "13px", color: "var(--text-primary)", marginBottom: "8px", lineHeight: 1.45, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" },
   arcText: { fontSize: "13px", fontWeight: 300, color: "var(--text-secondary)", lineHeight: 1.6 },
   pillRow: { display: "flex", gap: "5px", flexWrap: "wrap", marginTop: "8px" },
+  loadingRow: {
+    padding: "32px 20px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+  },
+  skeleton: {
+    background: "var(--surface)",
+    borderRadius: "var(--radius-lg)",
+    border: "1px solid var(--border)",
+    animation: "pulse 1.6s ease-in-out infinite",
+  },
+  emptyCard: {
+    margin: "0 20px",
+    background: "var(--surface)",
+    border: "1px solid var(--border)",
+    borderRadius: "var(--radius-lg)",
+    padding: "20px",
+  },
+  emptyTitle: {
+    fontFamily: "var(--font-display)",
+    fontSize: "17px",
+    color: "var(--text-primary)",
+    marginBottom: "6px",
+  },
+  emptyBody: {
+    fontSize: "12px",
+    fontWeight: 300,
+    color: "var(--text-secondary)",
+    lineHeight: 1.65,
+    marginBottom: "14px",
+  },
+  emptySteps: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
+  },
+  emptyStep: {
+    display: "flex",
+    alignItems: "flex-start",
+    gap: "10px",
+  },
+  stepNum: {
+    flexShrink: 0,
+    width: "20px",
+    height: "20px",
+    borderRadius: "50%",
+    background: "var(--accent-soft)",
+    border: "1px solid var(--accent-border)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "10px",
+    fontWeight: 500,
+    color: "var(--accent)",
+    marginTop: "1px",
+  },
+  stepText: {
+    fontSize: "12px",
+    fontWeight: 300,
+    color: "var(--text-secondary)",
+    lineHeight: 1.55,
+  },
 };
+
+function SkeletonBlock({ height }) {
+  return <div style={{ ...s.skeleton, height: height || "56px" }} />;
+}
 
 export default function Home({ user, onSwitchProfile }) {
   const navigate = useNavigate();
   const [recentEntry, setRecentEntry] = useState(null);
   const [arcSummary, setArcSummary] = useState(null);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const [tappedMood, setTappedMood] = useState(null);
 
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
 
   useEffect(() => {
     if (!user) return;
-    getEntries(user.user_id).then((data) => { if (data.entries.length > 0) setRecentEntry(data.entries[0]); }).catch(() => { });
-    getInsights(user.user_id).then((data) => { if (data.has_data) setArcSummary(data.arc_summary); }).catch(() => { });
+    setDataLoaded(false);
+    let entriesDone = false;
+    let insightsDone = false;
+
+    function checkDone() {
+      if (entriesDone && insightsDone) setDataLoaded(true);
+    }
+
+    getEntries(user.user_id)
+      .then((data) => { if (data.entries.length > 0) setRecentEntry(data.entries[0]); })
+      .catch(() => {})
+      .finally(() => { entriesDone = true; checkDone(); });
+
+    getInsights(user.user_id)
+      .then((data) => { if (data.has_data) setArcSummary(data.arc_summary); })
+      .catch(() => {})
+      .finally(() => { insightsDone = true; checkDone(); });
   }, [user]);
 
   function handleMoodTap(mood) {
@@ -77,8 +160,12 @@ export default function Home({ user, onSwitchProfile }) {
     setTimeout(() => navigate("/journal"), 300);
   }
 
+  const hasHistory = recentEntry || arcSummary;
+
   return (
     <div style={s.screen}>
+      <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }`}</style>
+
       <div style={s.header}>
         <span style={s.brand}>Integra</span>
         <button style={s.switchBtn} onClick={onSwitchProfile}>Switch profile</button>
@@ -93,7 +180,11 @@ export default function Home({ user, onSwitchProfile }) {
       <div style={s.sectionHeader}><span style={s.sectionTitle}>Quick check-in</span></div>
       <div style={s.moodRow}>
         {QUICK_MOODS.map((m) => (
-          <button key={m.label} style={{ ...s.moodPill, background: `${m.color}18`, color: m.color, border: `1px solid ${m.color}30`, transform: tappedMood === m.label ? "scale(0.94)" : "scale(1)", opacity: tappedMood && tappedMood !== m.label ? 0.4 : 1 }} onClick={() => handleMoodTap(m.label)}>
+          <button
+            key={m.label}
+            style={{ ...s.moodPill, background: `${m.color}18`, color: m.color, border: `1px solid ${m.color}30`, transform: tappedMood === m.label ? "scale(0.94)" : "scale(1)", opacity: tappedMood && tappedMood !== m.label ? 0.4 : 1 }}
+            onClick={() => handleMoodTap(m.label)}
+          >
             {m.label}
           </button>
         ))}
@@ -108,33 +199,73 @@ export default function Home({ user, onSwitchProfile }) {
         <span style={{ fontSize: "20px", color: "var(--accent)" }}>+</span>
       </button>
 
-      {recentEntry && (
+      {/* Loading skeleton */}
+      {!dataLoaded && (
+        <div style={s.loadingRow}>
+          <SkeletonBlock height="72px" />
+          <SkeletonBlock height="56px" />
+        </div>
+      )}
+
+      {/* Established user: last entry + arc */}
+      {dataLoaded && hasHistory && (
         <>
-          <div style={s.sectionHeader}>
-            <span style={s.sectionTitle}>Last entry</span>
-            <span style={{ fontSize: "11px", color: "var(--accent)", cursor: "pointer" }} onClick={() => navigate("/journal")}>All entries</span>
-          </div>
-          <div style={{ ...s.card, cursor: "pointer" }} onClick={() => navigate("/journal")}>
-            <div style={s.cardLabel}>{formatDate(recentEntry.date)}</div>
-            <div style={s.entryTitle}>{recentEntry.text}</div>
-            {recentEntry.emotions && (
-              <div style={s.pillRow}>
-                {Object.entries(recentEntry.emotions).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([emotion, score]) => (
-                  <EmotionPill key={emotion} emotion={emotion} score={score} />
-                ))}
+          {recentEntry && (
+            <>
+              <div style={s.sectionHeader}>
+                <span style={s.sectionTitle}>Last entry</span>
+                <span style={{ fontSize: "11px", color: "var(--accent)", cursor: "pointer" }} onClick={() => navigate("/journal")}>All entries</span>
               </div>
-            )}
-          </div>
+              <div style={{ ...s.card, cursor: "pointer" }} onClick={() => navigate("/journal")}>
+                <div style={s.cardLabel}>{formatDate(recentEntry.date)}</div>
+                <div style={s.entryTitle}>{recentEntry.text}</div>
+                {recentEntry.emotions && (
+                  <div style={s.pillRow}>
+                    {Object.entries(recentEntry.emotions).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([emotion, score]) => (
+                      <EmotionPill key={emotion} emotion={emotion} score={score} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {arcSummary && (
+            <>
+              <div style={s.sectionHeader}>
+                <span style={s.sectionTitle}>Your arc</span>
+                <span style={{ fontSize: "11px", color: "var(--accent)", cursor: "pointer" }} onClick={() => navigate("/insights")}>Full insights</span>
+              </div>
+              <div style={s.card}><div style={s.arcText}>{arcSummary}</div></div>
+            </>
+          )}
         </>
       )}
 
-      {arcSummary && (
+      {/* New user empty state */}
+      {dataLoaded && !hasHistory && (
         <>
-          <div style={s.sectionHeader}>
-            <span style={s.sectionTitle}>Your arc</span>
-            <span style={{ fontSize: "11px", color: "var(--accent)", cursor: "pointer" }} onClick={() => navigate("/insights")}>Full insights</span>
+          <div style={s.sectionHeader}><span style={s.sectionTitle}>Getting started</span></div>
+          <div style={s.emptyCard}>
+            <div style={s.emptyTitle}>Welcome to Integra.</div>
+            <div style={s.emptyBody}>
+              This is your integration space. Write your first entry and Integra will start tracking your emotional arc over time.
+            </div>
+            <div style={s.emptySteps}>
+              <div style={s.emptyStep}>
+                <div style={s.stepNum}>1</div>
+                <div style={s.stepText}>Write a journal entry about what you're processing -- no structure needed, just write.</div>
+              </div>
+              <div style={s.emptyStep}>
+                <div style={s.stepNum}>2</div>
+                <div style={s.stepText}>Integra detects emotions and themes from your text automatically.</div>
+              </div>
+              <div style={s.emptyStep}>
+                <div style={s.stepNum}>3</div>
+                <div style={s.stepText}>After a few entries, your emotional arc appears here and on the Insights page.</div>
+              </div>
+            </div>
           </div>
-          <div style={s.card}><div style={s.arcText}>{arcSummary}</div></div>
         </>
       )}
     </div>

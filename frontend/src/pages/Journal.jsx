@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getEntries, createEntry } from "../api.js";
 import EmotionPill from "../components/EmotionPill.jsx";
 
@@ -11,6 +12,7 @@ import EmotionPill from "../components/EmotionPill.jsx";
  *
  * After submitting an entry, analysis results (emotions, themes,
  * recommendations) are shown inline before returning to browse mode.
+ * A "Reflect with Indy" button navigates to Companion with entry context.
  */
 
 function formatDate(dateStr) {
@@ -182,6 +184,20 @@ const s = {
     letterSpacing: "0.02em",
     width: "100%",
   },
+  ghostBtn: {
+    background: "transparent",
+    border: "1px solid var(--border)",
+    borderRadius: "10px",
+    padding: "14px",
+    fontSize: "14px",
+    fontWeight: 400,
+    color: "var(--text-secondary)",
+    cursor: "pointer",
+    fontFamily: "var(--font-body)",
+    width: "100%",
+    marginTop: "10px",
+    transition: "border-color 0.15s, color 0.15s",
+  },
   resultCard: {
     background: "var(--surface)",
     border: "1px solid var(--border)",
@@ -190,12 +206,40 @@ const s = {
     marginBottom: "16px",
   },
   emptyState: {
+    margin: "32px 20px 0",
+    background: "var(--surface)",
+    border: "1px solid var(--border)",
+    borderRadius: "var(--radius-lg)",
+    padding: "28px 20px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
     textAlign: "center",
-    padding: "60px 20px",
-    color: "var(--text-muted)",
-    fontSize: "13px",
+    gap: "8px",
+  },
+  emptyTitle: {
+    fontFamily: "var(--font-display)",
+    fontSize: "18px",
+    color: "var(--text-primary)",
+  },
+  emptyBody: {
+    fontSize: "12px",
     fontWeight: 300,
-    lineHeight: 1.7,
+    color: "var(--text-muted)",
+    lineHeight: 1.65,
+    maxWidth: "240px",
+  },
+  emptyBtn: {
+    marginTop: "8px",
+    background: "var(--accent)",
+    border: "none",
+    borderRadius: "10px",
+    padding: "10px 20px",
+    fontSize: "13px",
+    fontWeight: 500,
+    color: "#1c1a18",
+    cursor: "pointer",
+    fontFamily: "var(--font-body)",
   },
 };
 
@@ -207,20 +251,11 @@ function EntryCard({ entry }) {
 
   return (
     <div
-      style={{
-        ...s.entryCard,
-        borderColor: expanded ? "var(--accent)" : "var(--border)",
-      }}
+      style={{ ...s.entryCard, borderColor: expanded ? "var(--accent)" : "var(--border)" }}
       onClick={() => setExpanded(!expanded)}
     >
       <div style={s.entryDate}>{formatDate(entry.date)}{entry.week_number ? ` · Week ${entry.week_number}` : ""}</div>
-      <div style={{
-        ...s.entryPreview,
-        display: "-webkit-box",
-        WebkitLineClamp: expanded ? "none" : 2,
-        WebkitBoxOrient: "vertical",
-        overflow: expanded ? "visible" : "hidden",
-      }}>
+      <div style={{ ...s.entryPreview, display: "-webkit-box", WebkitLineClamp: expanded ? "none" : 2, WebkitBoxOrient: "vertical", overflow: expanded ? "visible" : "hidden" }}>
         {entry.text}
       </div>
       <div style={s.pillRow}>
@@ -235,9 +270,7 @@ function EntryCard({ entry }) {
             <>
               <div style={s.sectionLabel}>Themes</div>
               <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                {entry.themes.map((t) => (
-                  <span key={t} style={s.themeChip}>{t}</span>
-                ))}
+                {entry.themes.map((t) => <span key={t} style={s.themeChip}>{t}</span>)}
               </div>
             </>
           )}
@@ -256,22 +289,21 @@ function EntryCard({ entry }) {
 }
 
 export default function Journal({ user, onEntrySubmitted }) {
+  const navigate = useNavigate();
   const [mode, setMode] = useState("browse");
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
+  const [submittedText, setSubmittedText] = useState("");
   const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!user) return;
     setLoading(true);
     getEntries(user.user_id)
-      .then((data) => {
-        setEntries(data.entries);
-        setLoading(false);
-      })
+      .then((data) => { setEntries(data.entries); setLoading(false); })
       .catch(() => setLoading(false));
   }, [user]);
 
@@ -279,11 +311,13 @@ export default function Journal({ user, onEntrySubmitted }) {
     if (!text.trim()) return;
     setSubmitting(true);
     setError(null);
-    createEntry(user.user_id, text.trim())
+    const entryText = text.trim();
+    createEntry(user.user_id, entryText)
       .then((data) => {
         setResult(data.entry);
+        setSubmittedText(entryText);
         setEntries((prev) => [data.entry, ...prev]);
-        onEntrySubmitted(text.trim());
+        onEntrySubmitted(entryText);
         setSubmitting(false);
       })
       .catch((err) => {
@@ -292,13 +326,23 @@ export default function Journal({ user, onEntrySubmitted }) {
       });
   }
 
+  function handleReflectWithIndy() {
+    // Entry context was already set via onEntrySubmitted -- just navigate
+    navigate("/companion");
+  }
+
+  function handleBackToBrowse() {
+    setMode("browse");
+    setResult(null);
+    setText("");
+    setSubmittedText("");
+  }
+
   if (mode === "write") {
     return (
       <div style={s.writeScreen}>
         <div style={s.writeHeader}>
-          <button style={s.backBtn} onClick={() => { setMode("browse"); setResult(null); setText(""); }}>
-            Back
-          </button>
+          <button style={s.backBtn} onClick={handleBackToBrowse}>Back</button>
           <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
             {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}
           </span>
@@ -323,9 +367,7 @@ export default function Journal({ user, onEntrySubmitted }) {
                 <>
                   <div style={s.sectionLabel}>Themes</div>
                   <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "16px" }}>
-                    {result.themes.map((t) => (
-                      <span key={t} style={s.themeChip}>{t}</span>
-                    ))}
+                    {result.themes.map((t) => <span key={t} style={s.themeChip}>{t}</span>)}
                   </div>
                 </>
               )}
@@ -340,7 +382,10 @@ export default function Journal({ user, onEntrySubmitted }) {
               )}
             </div>
 
-            <button style={s.submitBtn} onClick={() => { setMode("browse"); setResult(null); setText(""); }}>
+            <button style={s.submitBtn} onClick={handleReflectWithIndy}>
+              Reflect with Indy
+            </button>
+            <button style={s.ghostBtn} onClick={handleBackToBrowse}>
               Back to journal
             </button>
           </>
@@ -387,16 +432,23 @@ export default function Journal({ user, onEntrySubmitted }) {
 
       {!loading && entries.length === 0 && (
         <div style={s.emptyState}>
-          <p style={{ marginBottom: "8px" }}>No entries yet.</p>
-          <p>Tap "New entry" to begin your integration journey.</p>
+          <div style={s.emptyTitle}>No entries yet.</div>
+          <div style={s.emptyBody}>
+            Write your first entry and Integra will detect emotions and themes from your text automatically.
+          </div>
+          <button style={s.emptyBtn} onClick={() => setMode("write")}>
+            Write your first entry
+          </button>
         </div>
       )}
 
-      <div style={s.list}>
-        {entries.map((entry) => (
-          <EntryCard key={entry.entry_id} entry={entry} />
-        ))}
-      </div>
+      {!loading && entries.length > 0 && (
+        <div style={s.list}>
+          {entries.map((entry) => (
+            <EntryCard key={entry.entry_id} entry={entry} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -10,9 +10,25 @@ import { sendMessage, resetChat } from "../api.js";
  *   - Disclaimer chip always visible at top
  *   - If entry context is passed from Journal, first message includes it
  *   - Crisis responses are visually distinct (amber warning card)
+ *   - Crisis response has a brief thinking delay so it feels considered
+ *   - Crisis response shows a tappable 988 call button
  *   - Auto-scrolls to latest message
- *   - Reset button clears history
+ *   - Reset button requires confirmation before clearing
+ *   - Guest mode shows a welcome message on first load
+ *   - Thinking state shows rotating phrases instead of static text
  */
+
+const THINKING_PHRASES = [
+  "Sitting with what you shared...",
+  "Holding this with you...",
+  "Taking a moment with this...",
+  "Letting that land...",
+  "Reflecting on what you've shared...",
+];
+
+function randomThinkingPhrase() {
+  return THINKING_PHRASES[Math.floor(Math.random() * THINKING_PHRASES.length)];
+}
 
 const s = {
   screen: {
@@ -20,7 +36,7 @@ const s = {
     background: "var(--bg)",
     display: "flex",
     flexDirection: "column",
-    paddingBottom: "64px", // BottomNav height
+    paddingBottom: "64px",
   },
   header: {
     padding: "52px 20px 12px",
@@ -68,6 +84,49 @@ const s = {
     background: "var(--accent)",
     flexShrink: 0,
   },
+  confirmBanner: {
+    margin: "0 20px",
+    background: "rgba(166,123,123,0.08)",
+    border: "1px solid rgba(166,123,123,0.25)",
+    borderRadius: "8px",
+    padding: "10px 14px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: "12px",
+    flexShrink: 0,
+  },
+  confirmText: {
+    fontSize: "12px",
+    fontWeight: 300,
+    color: "#c49090",
+  },
+  confirmBtns: {
+    display: "flex",
+    gap: "8px",
+    flexShrink: 0,
+  },
+  confirmYes: {
+    background: "rgba(166,123,123,0.2)",
+    border: "1px solid rgba(166,123,123,0.35)",
+    borderRadius: "6px",
+    padding: "4px 10px",
+    fontSize: "11px",
+    fontWeight: 500,
+    color: "#d4a4a4",
+    cursor: "pointer",
+    fontFamily: "var(--font-body)",
+  },
+  confirmNo: {
+    background: "transparent",
+    border: "1px solid var(--border)",
+    borderRadius: "6px",
+    padding: "4px 10px",
+    fontSize: "11px",
+    color: "var(--text-muted)",
+    cursor: "pointer",
+    fontFamily: "var(--font-body)",
+  },
   messages: {
     flex: 1,
     overflowY: "auto",
@@ -112,6 +171,21 @@ const s = {
     marginBottom: "5px",
     opacity: 0.7,
   },
+  callBtn: {
+    display: "block",
+    marginTop: "10px",
+    background: "var(--accent)",
+    border: "none",
+    borderRadius: "8px",
+    padding: "8px 14px",
+    fontSize: "12px",
+    fontWeight: 500,
+    color: "#1c1a18",
+    cursor: "pointer",
+    fontFamily: "var(--font-body)",
+    textDecoration: "none",
+    textAlign: "center",
+  },
   inputArea: {
     padding: "12px 20px 16px",
     borderTop: "1px solid var(--border)",
@@ -155,6 +229,8 @@ const s = {
     fontSize: "13px",
     color: "var(--text-muted)",
     maxWidth: "82%",
+    fontWeight: 300,
+    fontStyle: "italic",
   },
   emptyState: {
     display: "flex",
@@ -176,7 +252,20 @@ const s = {
     fontWeight: 300,
     color: "var(--text-muted)",
     lineHeight: 1.6,
-    maxWidth: "240px",
+    maxWidth: "260px",
+  },
+  guestNote: {
+    marginTop: "12px",
+    background: "var(--surface)",
+    border: "1px solid var(--border)",
+    borderRadius: "8px",
+    padding: "10px 14px",
+    fontSize: "11px",
+    fontWeight: 300,
+    color: "var(--text-secondary)",
+    lineHeight: 1.6,
+    maxWidth: "260px",
+    textAlign: "left",
   },
   contextBanner: {
     margin: "0 20px 4px",
@@ -194,14 +283,17 @@ export default function Companion({ user, entryContext, onContextUsed }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [thinkingPhrase, setThinkingPhrase] = useState(THINKING_PHRASES[0]);
   const [contextConsumed, setContextConsumed] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const bottomRef = useRef(null);
+
+  const isGuest = !user || user.user_id === "guest";
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  // Reset context consumed flag when new entry context arrives
   useEffect(() => {
     if (entryContext) setContextConsumed(false);
   }, [entryContext]);
@@ -210,7 +302,6 @@ export default function Companion({ user, entryContext, onContextUsed }) {
     const text = input.trim();
     if (!text || loading) return;
 
-    // Use entry context on the first send if available
     const contextToSend = !contextConsumed && entryContext ? entryContext : null;
     if (contextToSend) {
       setContextConsumed(true);
@@ -220,9 +311,16 @@ export default function Companion({ user, entryContext, onContextUsed }) {
     setMessages((prev) => [...prev, { role: "user", content: text }]);
     setInput("");
     setLoading(true);
+    setThinkingPhrase(randomThinkingPhrase());
 
     try {
-      const data = await sendMessage(user.user_id, text, contextToSend);
+      const data = await sendMessage(user?.user_id ?? "guest", text, contextToSend);
+
+      // Brief delay before showing crisis response so it feels considered
+      if (data.crisis_detected) {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+      }
+
       setMessages((prev) => [
         ...prev,
         {
@@ -245,10 +343,19 @@ export default function Companion({ user, entryContext, onContextUsed }) {
     }
   }
 
-  async function handleReset() {
+  function handleResetClick() {
     if (messages.length === 0) return;
-    await resetChat(user.user_id).catch(() => {});
+    setShowConfirm(true);
+  }
+
+  async function confirmReset() {
+    setShowConfirm(false);
+    await resetChat(user?.user_id ?? "guest").catch(() => {});
     setMessages([]);
+  }
+
+  function cancelReset() {
+    setShowConfirm(false);
   }
 
   function handleKeyDown(e) {
@@ -263,13 +370,23 @@ export default function Companion({ user, entryContext, onContextUsed }) {
       <div style={s.header}>
         <div style={s.headerRow}>
           <h1 style={s.title}>Indy</h1>
-          <button style={s.resetBtn} onClick={handleReset}>Clear chat</button>
+          <button style={s.resetBtn} onClick={handleResetClick}>Clear chat</button>
         </div>
         <div style={s.disclaimer}>
           <div style={s.dot} />
           Indy is an AI companion, not a therapist
         </div>
       </div>
+
+      {showConfirm && (
+        <div style={s.confirmBanner}>
+          <span style={s.confirmText}>Clear this conversation? This cannot be undone.</span>
+          <div style={s.confirmBtns}>
+            <button style={s.confirmYes} onClick={confirmReset}>Clear</button>
+            <button style={s.confirmNo} onClick={cancelReset}>Cancel</button>
+          </div>
+        </div>
+      )}
 
       {entryContext && !contextConsumed && (
         <div style={s.contextBanner}>
@@ -284,6 +401,14 @@ export default function Companion({ user, entryContext, onContextUsed }) {
             <div style={s.emptySub}>
               I'm here to support your integration. Share what's on your mind.
             </div>
+            {isGuest && (
+              <div style={s.guestNote}>
+                You're chatting as a guest. Indy can still reflect with you, but
+                your conversation won't be saved and there's no entry history to
+                draw on. Create a profile to unlock journaling and longitudinal
+                tracking.
+              </div>
+            )}
           </div>
         )}
 
@@ -292,13 +417,18 @@ export default function Companion({ user, entryContext, onContextUsed }) {
             <div style={s.bubble(msg.role, msg.crisis)}>
               {msg.crisis && <div style={s.crisisLabel}>Crisis support</div>}
               {msg.content}
+              {msg.crisis && (
+                <a href="tel:988" style={s.callBtn}>
+                  Call or text 988
+                </a>
+              )}
             </div>
           </div>
         ))}
 
         {loading && (
           <div style={s.bubbleWrapper("assistant")}>
-            <div style={s.typing}>Indy is thinking...</div>
+            <div style={s.typing}>{thinkingPhrase}</div>
           </div>
         )}
 

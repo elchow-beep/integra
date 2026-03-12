@@ -41,11 +41,9 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # The RAG pipeline does not run when this fires.
 # ---------------------------------------------------------------------------
 
-CRISIS_RESPONSE = """I hear that you're going through something very difficult right now, and I'm glad you're here.
+CRISIS_RESPONSE = """What you're sharing matters, and I'm glad you're here.
 
-Please reach out to the 988 Suicide and Crisis Lifeline by calling or texting 988. They are available 24 hours a day, 7 days a week, and are there to support you. If you are in immediate danger, please call 911 or go to your nearest emergency room.
-
-Integra is a journaling companion, not a crisis service -- the people at 988 are trained to help in moments like this one. Please contact them.
+Please reach out to the 988 Suicide and Crisis Lifeline by calling or texting 988 -- they're available 24/7 and trained to help. If you're in immediate danger, call 911.
 """.strip()
 
 

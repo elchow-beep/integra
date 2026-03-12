@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Integra -- Demo Cheatsheet</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:             #1c1a18;
+    --surface:        #242220;
+    --surface-raised: #2e2b28;
+    --border:         #3a3733;
+    --text-primary:   #e8e3db;
+    --text-secondary: #8a8480;
+    --text-muted:     #5a5652;
+    --accent:         #c4956a;
+    --accent-soft:    rgba(196,149,106,0.10);
+    --awe:     #7b9ea6;
+    --overwhelm:#9b7fa6;
+    --fear:    #a67b7b;
+    --grief:   #7a8fa6;
+    --confusion:#a69b7b;
+    --joy:     #a6c47b;
+    --gratitude:#c4956a;
+    --calm:    #7ba68f;
+    --green:   #7ba68f;
+    --red:     #a67b7b;
+    --blue:    #7b9ea6;
+  }
+
+  @media print {
+    body { background: #fff !important; color: #111 !important; }
+    .page { max-width: none; padding: 16px; }
+    .card { break-inside: avoid; }
+  }
+
+  body {
+    background: #111010;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 32px 16px 64px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .page {
+    width: 100%;
+    max-width: 960px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* Header */
+  .page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .page-header h1 {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 26px;
+    font-weight: 400;
+    color: var(--text-primary);
+    line-height: 1.1;
+  }
+  .page-header p {
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--text-muted);
+    margin-top: 3px;
+  }
+  .header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+  .chip {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 4px;
+    background: var(--accent-soft);
+    border: 1px solid rgba(196,149,106,0.2);
+    color: var(--accent);
+  }
+  .url-chip {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text-muted);
+    font-family: monospace;
+    letter-spacing: 0;
+  }
+
+  /* Grid layouts */
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  /* Section label */
+  .section-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+  }
+  .card-sub {
+    font-size: 11px;
+    font-weight: 300;
+    color: var(--text-secondary);
+    line-height: 1.55;
+  }
+  .card-sub b {
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+  .card-sub code {
+    font-family: monospace;
+    font-size: 10.5px;
+    background: var(--surface-raised);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--accent);
+  }
+
+  /* Accent border cards */
+  .card-accent {
+    border-color: rgba(196,149,106,0.3);
+    background: rgba(196,149,106,0.04);
+  }
+  .card-green {
+    border-color: rgba(123,166,143,0.3);
+    background: rgba(123,166,143,0.04);
+  }
+  .card-red {
+    border-color: rgba(166,123,123,0.3);
+    background: rgba(166,123,123,0.04);
+  }
+  .card-blue {
+    border-color: rgba(123,158,166,0.3);
+    background: rgba(123,158,166,0.04);
+  }
+
+  /* Emotion mapping table */
+  .emo-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+  .emo-table th {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-align: left;
+    padding: 5px 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .emo-table td {
+    padding: 6px 8px;
+    color: var(--text-secondary);
+    font-weight: 300;
+    border-bottom: 1px solid rgba(58,55,51,0.5);
+    vertical-align: top;
+    line-height: 1.4;
+  }
+  .emo-table tr:last-child td { border-bottom: none; }
+  .emo-pill {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin: 1px 2px 1px 0;
+    white-space: nowrap;
+  }
+  .roberta-pill {
+    background: rgba(90,86,82,0.25);
+    color: #a8a4a0;
+    border: 1px solid rgba(90,86,82,0.4);
+  }
+  .e-awe      { background: rgba(123,158,166,0.15); color: #7b9ea6; border: 1px solid rgba(123,158,166,0.3); }
+  .e-overwhelm{ background: rgba(155,127,166,0.15); color: #9b7fa6; border: 1px solid rgba(155,127,166,0.3); }
+  .e-fear     { background: rgba(166,123,123,0.15); color: #a67b7b; border: 1px solid rgba(166,123,123,0.3); }
+  .e-grief    { background: rgba(122,143,166,0.15); color: #7a8fa6; border: 1px solid rgba(122,143,166,0.3); }
+  .e-confusion{ background: rgba(166,155,123,0.15); color: #a69b7b; border: 1px solid rgba(166,155,123,0.3); }
+  .e-joy      { background: rgba(166,196,123,0.15); color: #a6c47b; border: 1px solid rgba(166,196,123,0.3); }
+  .e-gratitude{ background: rgba(196,149,106,0.15); color: #c4956a; border: 1px solid rgba(196,149,106,0.3); }
+  .e-calm     { background: rgba(123,166,143,0.15); color: #7ba68f; border: 1px solid rgba(123,166,143,0.3); }
+
+  /* Divider */
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 4px 0;
+  }
+
+  /* Tag row */
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 6px;
+  }
+  .tag {
+    font-size: 10px;
+    font-weight: 400;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+
+  /* Warning / note block */
+  .note {
+    background: rgba(166,123,123,0.08);
+    border: 1px solid rgba(166,123,123,0.25);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 300;
+    color: #c49090;
+    line-height: 1.55;
+  }
+  .note b { color: #d4a4a4; font-weight: 500; }
+
+  .info {
+    background: rgba(123,158,166,0.08);
+    border: 1px solid rgba(123,158,166,0.25);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 300;
+    color: #8db4bc;
+    line-height: 1.55;
+  }
+  .info b { color: #a0c4cc; font-weight: 500; }
+
+  /* Full-width card */
+  .card-full {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+
+  /* Two-col inside card */
+  .inner-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 10px;
+  }
+
+  @media (max-width: 700px) {
+    .grid-3, .grid-4, .grid-2 { grid-template-columns: 1fr; }
+    .inner-2col { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1>Integra -- Demo Cheatsheet</h1>
+      <p>Tech stack rationale, model decisions, RoBERTa mapping, FDA-approved chatbot research</p>
+    </div>
+    <div class="header-right">
+      <span class="chip">Capstone -- March 15, 2026</span>
+      <span class="url-chip">integra-journal.vercel.app</span>
+    </div>
+  </div>
+
+  <!-- Tech Stack Rationale -->
+  <div>
+    <div class="section-label">Tech Stack -- Why These Choices</div>
+    <div class="grid-3">
+      <div class="card card-accent">
+        <div class="card-title">FastAPI + Railway</div>
+        <div class="card-sub">
+          FastAPI is async-native, which matters for chaining multiple inference calls in a single request. Compared to Flask, it has built-in request validation via Pydantic and auto-generates OpenAPI docs.<br><br>
+          Railway was chosen over HuggingFace Spaces for the backend because it runs a standard Docker container with no framework lock-in, auto-deploys from GitHub, and exposes a stable HTTPS endpoint. HF Spaces have cold-start issues and are better suited to demo-only Gradio apps.
+        </div>
+      </div>
+      <div class="card card-accent">
+        <div class="card-title">React + Vite + Vercel</div>
+        <div class="card-sub">
+          Streamlit was the original frontend. It was replaced because Streamlit re-runs the entire script on every interaction, making custom UI state (bottom nav active states, animated loading, multi-mode journal page) very difficult to control.<br><br>
+          React gives component-level state, smooth transitions, and full control over mobile layout. Vite provides near-instant dev server HMR. Vercel is purpose-built for React/Vite: zero config, instant previews, env var management, and <code>vercel.json</code> rewrites for client-side routing.
+        </div>
+      </div>
+      <div class="card card-accent">
+        <div class="card-title">HuggingFace Inference API</div>
+        <div class="card-sub">
+          Running RoBERTa and BART locally requires downloading ~500MB of model weights, which breaks Railway deployments and inflates Docker image size.<br><br>
+          The Inference API offloads model hosting entirely. The tradeoff is cold-start latency on the first call of a session (~5-8 seconds). This is acknowledged as a known limitation. In a production deployment these would be warm, dedicated endpoints.
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">LangChain + ChromaDB</div>
+        <div class="card-sub">
+          LangChain manages the retrieval chain: embedding the user query, running cosine similarity search against ChromaDB, formatting retrieved chunks, and injecting them into the GPT-4o context window.<br><br>
+          ChromaDB was chosen over Pinecone because it runs entirely locally (no external service dependency), embeds in the Docker container, and is well-supported by LangChain. For 4,450 vectors it performs well with no need for managed infrastructure.
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">GPT-4o for RAG</div>
+        <div class="card-sub">
+          GPT-4o handles the final generation step after retrieval. It was chosen over smaller open models because the task requires nuanced, emotionally calibrated language grounded in clinical literature -- not just factual retrieval.<br><br>
+          The system prompt enforces IFS and ACT-aligned response style (reflection, open questions, no clinical advice), which requires a model with strong instruction-following.
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Recharts for Visualization</div>
+        <div class="card-sub">
+          Recharts is a React-native charting library built on D3. It was chosen over plain D3 because it integrates cleanly with React's component model and state, supports responsive containers natively, and requires far less boilerplate for line and bar charts.<br><br>
+          The emotion timeline line chart uses <code>LineChart</code> with one <code>Line</code> per emotion. The theme frequency chart uses <code>BarChart</code> with a horizontal layout.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RoBERTa Mapping -->
+  <div>
+    <div class="section-label">RoBERTa Emotion Remapping -- Full Weight Matrix</div>
+    <div class="card-full">
+      <div class="card-sub" style="margin-bottom:12px;">
+        The base model (<code>j-hartmann/emotion-english-distilroberta-base</code>) outputs 7 labels. A custom weighting layer converts these to 8 integration-specific labels. Each base score is multiplied by the weight and summed across all base emotions that contribute to that target.
+      </div>
+      <table class="emo-table">
+        <thead>
+          <tr>
+            <th>RoBERTa Base Label</th>
+            <th>Maps to Integra Label(s)</th>
+            <th>Weight(s)</th>
+            <th>Rationale</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="emo-pill roberta-pill">surprise</span></td>
+            <td><span class="emo-pill e-awe">awe</span> <span class="emo-pill e-overwhelm">overwhelm</span></td>
+            <td>0.8 / 0.3</td>
+            <td>Psychedelic experiences consistently report awe and surprise as synonymous. Overwhelm is a secondary component of high-valence surprise states.</td>
+          </tr>
+          <tr>
+            <td><span class="emo-pill roberta-pill">sadness</span></td>
+            <td><span class="emo-pill e-grief">grief</span> <span class="emo-pill e-confusion">confusion</span></td>
+            <td>0.9 / 0.2</td>
+            <td>Grief is the integration-relevant label for sadness. Confusion co-occurs with grief in integration literature -- processing loss often surfaces disorientation.</td>
+          </tr>
+          <tr>
+            <td><span class="emo-pill roberta-pill">joy</span></td>
+            <td><span class="emo-pill e-gratitude">gratitude</span> <span class="emo-pill e-calm">calm</span> <span class="emo-pill e-joy">joy</span></td>
+            <td>0.5 / 0.3 / 0.4</td>
+            <td>RoBERTa has no gratitude label. Gratitude-dominant integration text routes through joy. Calm and joy retained at lower weights. Known limitation: gratitude-dominant entries may show joy as dominant in output.</td>
+          </tr>
+          <tr>
+            <td><span class="emo-pill roberta-pill">fear</span></td>
+            <td><span class="emo-pill e-fear">fear</span> <span class="emo-pill e-overwhelm">overwhelm</span></td>
+            <td>0.9 / 0.4</td>
+            <td>Fear maps directly. Overwhelm is a frequent co-occurrence in psychedelic contexts -- fear during a session often presents as overwhelm in written retrospective accounts.</td>
+          </tr>
+          <tr>
+            <td><span class="emo-pill roberta-pill">anger</span></td>
+            <td><span class="emo-pill e-overwhelm">overwhelm</span> <span class="emo-pill e-confusion">confusion</span></td>
+            <td>0.5 / 0.4</td>
+            <td>Anger is rare in integration journaling and not a first-class label. In integration contexts it typically surfaces as overwhelm or confusion about emotional reactions.</td>
+          </tr>
+          <tr>
+            <td><span class="emo-pill roberta-pill">disgust</span></td>
+            <td><span class="emo-pill e-confusion">confusion</span> <span class="emo-pill e-fear">fear</span></td>
+            <td>0.5 / 0.3</td>
+            <td>Disgust is also rare in this domain. When present in integration writing it tends to reflect confronting ego material -- closer to confusion or fear than to its base label.</td>
+          </tr>
+          <tr>
+            <td><span class="emo-pill roberta-pill">neutral</span></td>
+            <td><span class="emo-pill e-calm">calm</span></td>
+            <td>0.6</td>
+            <td>Neutral text in integration journaling often reflects a settled, observational state. Calm is the closest integration-specific equivalent. Low weight prevents over-attribution.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="margin-top:12px;">
+        <div class="note"><b>Known limitation:</b> Emotions below a 0.2 confidence threshold are filtered from output. Because RoBERTa has no dedicated gratitude label, entries where gratitude is the primary tone may return joy as the top label. This is flagged in the Limitations slide and in the demo script.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FDA / Mental Health Chatbot Research -->
+  <div>
+    <div class="section-label">FDA-Approved Mental Health Chatbots -- Research Context</div>
+    <div class="grid-2">
+      <div class="card card-blue">
+        <div class="card-title">Current FDA Landscape (as of early 2026)</div>
+        <div class="card-sub">
+          The FDA regulates digital mental health tools under its Software as a Medical Device (SaMD) framework. As of the capstone date, <b>no AI-powered chatbot has received full FDA approval</b> as a standalone mental health treatment.<br><br>
+          The FDA has granted <b>Breakthrough Device Designation</b> to some digital therapeutics (DTx), notably Freespira (PTSD/panic disorder, cleared 2019 as a Class II device) and a handful of CBT-based apps. These are not chatbots -- they are structured digital therapy programs.<br><br>
+          <b>Woebot</b> (CBT-based chatbot) received a Breakthrough Device Designation from the FDA in 2021 for a specific adolescent depression indication, but as of 2025 had not completed the full de novo pathway to clearance.
+        </div>
+      </div>
+      <div class="card card-blue">
+        <div class="card-title">Why This Matters for Integra</div>
+        <div class="card-sub">
+          Integra is explicitly <b>not positioned as a medical device or therapy tool</b>. This is a deliberate design and legal choice.<br><br>
+          The disclaimer chip ("Indy is an AI companion, not a therapist") on the login screen and in the chat interface is the front-line signal of this positioning.<br><br>
+          The system prompt reinforces this: Indy reflects and asks questions grounded in published integration protocols. It does not diagnose, prescribe, or provide clinical advice. This mirrors the operational model of apps like Woebot's general wellness tier, which fall outside FDA regulation as a "general wellness" product rather than a medical device.<br><br>
+          <b>RAG grounding is a safety feature in this context:</b> anchoring responses to published MAPS and Yale protocols reduces hallucination risk and keeps responses within the bounds of established integration practice.
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:10px;">
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title">Woebot (Woebot Health)</div>
+          <div class="card-sub">
+            CBT-based conversational agent. FDA Breakthrough Device Designation (2021) for adolescent depression. Peer-reviewed trials published in JMIR Mental Health (Fitzpatrick et al., 2017). Operates in rule-based + NLP hybrid mode, not a generative LLM. General wellness tier (no FDA regulation) for adult use.
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Wysa (Wysa Inc.)</div>
+          <div class="card-sub">
+            CBT and DBT-informed chatbot. CE-marked as a Class I medical device in the EU (2023). FDA Breakthrough Device Designation for a major depressive disorder indication. Clinical validation studies published in JMIR mHealth. Uses scripted conversation trees with LLM-assisted transitions.
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Freespira (Palo Alto Health Sciences)</div>
+          <div class="card-sub">
+            FDA 510(k) cleared Class II medical device for PTSD and panic disorder. Not a chatbot -- it is a biofeedback-based respiratory training app. Relevant because it is the clearest example of an FDA-cleared digital therapeutic in the PTSD/trauma space that overlaps with Integra's user population.
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:10px;">
+      <div class="info"><b>Research sources:</b> JMIR Mental Health (2024, 2025 systematic reviews on LLM-based mental health chatbots), FDA SaMD guidance documents (2022, 2023 updates), PMC review "Safety and Efficacy of AI Chatbots for Mental Health" (medRxiv 2024), Woebot Health white papers.</div>
+    </div>
+  </div>
+
+  <!-- Model Decision Summary -->
+  <div>
+    <div class="section-label">Model Decision Rationale -- Quick Reference</div>
+    <div class="grid-4">
+      <div class="card">
+        <div class="card-title">RoBERTa for Emotion</div>
+        <div class="card-sub">
+          Distilled model, fast inference, well-benchmarked on emotional text. The Hartmann variant is fine-tuned specifically on emotional language. Alternative (GoEmotions BERT) covers 28 labels -- too granular, no integration-specific mapping available.
+        </div>
+        <div class="tag-row">
+          <span class="tag">HF Inference API</span>
+          <span class="tag">~150ms warm</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">BART-large-mnli for Themes</div>
+        <div class="card-sub">
+          Zero-shot classification via natural language hypothesis testing. No training data required -- themes are just strings passed as candidate labels. The keyword layer runs first to avoid cold-start latency on every request.
+        </div>
+        <div class="tag-row">
+          <span class="tag">Zero-shot</span>
+          <span class="tag">Fallback safe</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">text-embedding-3-small</div>
+        <div class="card-sub">
+          OpenAI's smallest embedding model, optimized for retrieval tasks. 1536 dimensions. Chosen over ada-002 (now deprecated) and text-embedding-3-large (overkill for 4,450 vectors, higher cost per embedding).
+        </div>
+        <div class="tag-row">
+          <span class="tag">4,450 vectors</span>
+          <span class="tag">ChromaDB</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">GPT-4o for Generation</div>
+        <div class="card-sub">
+          Strong instruction-following needed for the IFS/ACT-aligned system prompt. GPT-4o mini was tested but showed weaker adherence to the reflective response style. GPT-4o cost is acceptable for a demo-scale deployment.
+        </div>
+        <div class="tag-row">
+          <span class="tag">RAG grounded</span>
+          <span class="tag">IFS + ACT prompt</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Refs -->
+  <div>
+    <div class="section-label">Common Q and A -- If Asked During Demo</div>
+    <div class="grid-2">
+      <div class="card card-green">
+        <div class="card-title">Why not fine-tune RoBERTa on integration text?</div>
+        <div class="card-sub">
+          Fine-tuning requires labeled data -- annotated integration journal entries with ground-truth emotion labels. No such dataset exists publicly. The remapping layer is a pragmatic alternative: it uses domain knowledge about psychedelic integration to adjust the base model's output distribution without requiring training data.
+        </div>
+      </div>
+      <div class="card card-green">
+        <div class="card-title">How does crisis detection work exactly?</div>
+        <div class="card-sub">
+          Two layers run in sequence. Layer 1: exact keyword matching against a curated list of crisis phrases (runs in microseconds). Layer 2: cosine similarity between the user message embedding and a set of crisis reference sentences using the same embedding model as the RAG pipeline. If either layer triggers, the pipeline returns the 988 message and skips GPT-4o entirely.
+        </div>
+      </div>
+      <div class="card card-green">
+        <div class="card-title">Is Jordan's data real?</div>
+        <div class="card-sub">
+          No. Jordan's 14 entries are seeded data generated to reflect a realistic integration arc based on patterns described in the MAPS MDMA therapy manual and Yale psilocybin protocol. The emotional arc (awe/overwhelm resolving toward gratitude/joy) is consistent with outcomes reported in the clinical literature. This is disclosed on the Limitations slide.
+        </div>
+      </div>
+      <div class="card card-green">
+        <div class="card-title">Why does the theme extractor use two layers?</div>
+        <div class="card-sub">
+          BART-large-mnli has a cold-start delay of 5-8 seconds on HuggingFace Inference API. Running zero-shot on every entry would make the journal submission feel slow. The keyword layer catches the majority of themes instantly. Zero-shot only runs on the remainder, keeping median latency low while maintaining coverage for plain-language expressions the keyword layer misses.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
