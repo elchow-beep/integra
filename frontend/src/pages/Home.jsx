@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getEntries, getInsights } from "../api.js";
+import { getEntries, getInsights, postCheckin } from "../api.js";
 import EmotionPill from "../components/EmotionPill.jsx";
+import BottomSheet from "../components/BottomSheet.jsx";
 
 const QUICK_MOODS = [
-  { label: "calm", color: "#7ba68f" },
-  { label: "awe", color: "#7b9ea6" },
+  { label: "calm",      color: "#7ba68f" },
+  { label: "awe",       color: "#7b9ea6" },
   { label: "gratitude", color: "#c4956a" },
-  { label: "grief", color: "#7a8fa6" },
+  { label: "grief",     color: "#7a8fa6" },
   { label: "overwhelm", color: "#9b7fa6" },
-  { label: "joy", color: "#a6c47b" },
+  { label: "joy",       color: "#a6c47b" },
 ];
 
 function greeting() {
@@ -56,69 +57,55 @@ const s = {
   entryTitle: { fontSize: "13px", color: "var(--text-primary)", marginBottom: "8px", lineHeight: 1.45, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" },
   arcText: { fontSize: "13px", fontWeight: 300, color: "var(--text-secondary)", lineHeight: 1.6 },
   pillRow: { display: "flex", gap: "5px", flexWrap: "wrap", marginTop: "8px" },
-  loadingRow: {
-    padding: "32px 20px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-  },
-  skeleton: {
-    background: "var(--surface)",
-    borderRadius: "var(--radius-lg)",
-    border: "1px solid var(--border)",
-    animation: "pulse 1.6s ease-in-out infinite",
-  },
-  emptyCard: {
-    margin: "0 20px",
-    background: "var(--surface)",
-    border: "1px solid var(--border)",
-    borderRadius: "var(--radius-lg)",
-    padding: "20px",
-  },
-  emptyTitle: {
-    fontFamily: "var(--font-display)",
-    fontSize: "17px",
-    color: "var(--text-primary)",
-    marginBottom: "6px",
-  },
-  emptyBody: {
-    fontSize: "12px",
-    fontWeight: 300,
-    color: "var(--text-secondary)",
-    lineHeight: 1.65,
-    marginBottom: "14px",
-  },
-  emptySteps: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px",
-  },
-  emptyStep: {
-    display: "flex",
-    alignItems: "flex-start",
-    gap: "10px",
-  },
-  stepNum: {
-    flexShrink: 0,
-    width: "20px",
-    height: "20px",
-    borderRadius: "50%",
-    background: "var(--accent-soft)",
-    border: "1px solid var(--accent-border)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "10px",
+  loadingRow: { padding: "32px 20px", display: "flex", flexDirection: "column", gap: "10px" },
+  skeleton: { background: "var(--surface)", borderRadius: "var(--radius-lg)", border: "1px solid var(--border)", animation: "pulse 1.6s ease-in-out infinite" },
+  emptyCard: { margin: "0 20px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "20px" },
+  emptyTitle: { fontFamily: "var(--font-display)", fontSize: "17px", color: "var(--text-primary)", marginBottom: "6px" },
+  emptyBody: { fontSize: "12px", fontWeight: 300, color: "var(--text-secondary)", lineHeight: 1.65, marginBottom: "14px" },
+  emptySteps: { display: "flex", flexDirection: "column", gap: "8px" },
+  emptyStep: { display: "flex", alignItems: "flex-start", gap: "10px" },
+  stepNum: { flexShrink: 0, width: "20px", height: "20px", borderRadius: "50%", background: "var(--accent-soft)", border: "1px solid var(--accent-border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 500, color: "var(--accent)", marginTop: "1px" },
+  stepText: { fontSize: "12px", fontWeight: 300, color: "var(--text-secondary)", lineHeight: 1.55 },
+  // bottom sheet styles
+  sheetEmotion: (color) => ({
+    display: "inline-block",
+    padding: "4px 14px",
+    borderRadius: "20px",
+    fontSize: "13px",
     fontWeight: 500,
-    color: "var(--accent)",
-    marginTop: "1px",
+    background: `${color}22`,
+    border: `1px solid ${color}55`,
+    color: color,
+    marginBottom: "10px",
+    textTransform: "capitalize",
+  }),
+  sheetTitle: { fontFamily: "var(--font-display)", fontSize: "20px", color: "var(--text-primary)", marginBottom: "6px" },
+  sheetSub: { fontSize: "12px", fontWeight: 300, color: "var(--text-secondary)" },
+  sheetBtns: { display: "flex", flexDirection: "column", gap: "10px", marginTop: "20px" },
+  primaryBtn: {
+    background: "var(--accent)",
+    border: "none",
+    borderRadius: "10px",
+    padding: "13px 16px",
+    fontSize: "13px",
+    fontWeight: 500,
+    color: "#1c1a18",
+    cursor: "pointer",
+    fontFamily: "var(--font-body)",
+    letterSpacing: "0.02em",
   },
-  stepText: {
-    fontSize: "12px",
-    fontWeight: 300,
-    color: "var(--text-secondary)",
-    lineHeight: 1.55,
-  },
+  ghostBtn: (muted) => ({
+    background: "transparent",
+    border: "1px solid var(--border)",
+    borderRadius: "10px",
+    padding: "13px 16px",
+    fontSize: "13px",
+    fontWeight: 400,
+    color: muted ? "var(--calm, #7ba68f)" : "var(--text-secondary)",
+    cursor: muted ? "default" : "pointer",
+    fontFamily: "var(--font-body)",
+    transition: "color 0.2s",
+  }),
 };
 
 function SkeletonBlock({ height }) {
@@ -127,10 +114,15 @@ function SkeletonBlock({ height }) {
 
 export default function Home({ user, onSwitchProfile }) {
   const navigate = useNavigate();
-  const [recentEntry, setRecentEntry] = useState(null);
-  const [arcSummary, setArcSummary] = useState(null);
-  const [dataLoaded, setDataLoaded] = useState(false);
-  const [tappedMood, setTappedMood] = useState(null);
+  const [recentEntry, setRecentEntry]     = useState(null);
+  const [arcSummary, setArcSummary]       = useState(null);
+  const [dataLoaded, setDataLoaded]       = useState(false);
+  const [tappedMood, setTappedMood]       = useState(null);
+
+  // check-in sheet state
+  const [sheetOpen, setSheetOpen]         = useState(false);
+  const [checkinEmotion, setCheckinEmotion] = useState(null);
+  const [checkinStatus, setCheckinStatus] = useState(null); // null | "logging" | "done"
 
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
 
@@ -149,20 +141,50 @@ export default function Home({ user, onSwitchProfile }) {
 
     getEntries(user.user_id)
       .then((data) => { if (data.entries.length > 0) setRecentEntry(data.entries[0]); })
-      .catch(() => { })
+      .catch(() => {})
       .finally(() => { entriesDone = true; checkDone(); });
 
     getInsights(user.user_id)
       .then((data) => { if (data.has_data) setArcSummary(data.arc_summary); })
-      .catch(() => { })
+      .catch(() => {})
       .finally(() => { insightsDone = true; checkDone(); });
   }, [user]);
 
   function handleMoodTap(mood) {
+    setCheckinEmotion(mood);
+    setCheckinStatus(null);
     setTappedMood(mood);
-    setTimeout(() => navigate("/journal"), 300);
+    setSheetOpen(true);
   }
 
+  function handleSheetClose() {
+    setSheetOpen(false);
+    setTappedMood(null);
+  }
+
+  async function handleJustLog() {
+    if (!user || user.user_id === "guest") return;
+    setCheckinStatus("logging");
+    try {
+      await postCheckin(user.user_id, checkinEmotion);
+      setCheckinStatus("done");
+      setTimeout(() => {
+        setSheetOpen(false);
+        setTappedMood(null);
+        setCheckinStatus(null);
+      }, 1200);
+    } catch {
+      setCheckinStatus(null);
+    }
+  }
+
+  function handleChatWithIndy() {
+    setSheetOpen(false);
+    setTappedMood(null);
+    navigate("/companion", { state: { checkinEmotion } });
+  }
+
+  const selectedMoodColor = QUICK_MOODS.find((m) => m.label === checkinEmotion)?.color || "var(--accent)";
   const hasHistory = recentEntry || arcSummary;
 
   return (
@@ -185,7 +207,14 @@ export default function Home({ user, onSwitchProfile }) {
         {QUICK_MOODS.map((m) => (
           <button
             key={m.label}
-            style={{ ...s.moodPill, background: `${m.color}18`, color: m.color, border: `1px solid ${m.color}30`, transform: tappedMood === m.label ? "scale(0.94)" : "scale(1)", opacity: tappedMood && tappedMood !== m.label ? 0.4 : 1 }}
+            style={{
+              ...s.moodPill,
+              background: `${m.color}18`,
+              color: m.color,
+              border: `1px solid ${m.color}30`,
+              transform: tappedMood === m.label ? "scale(0.94)" : "scale(1)",
+              opacity: tappedMood && tappedMood !== m.label ? 0.4 : 1,
+            }}
             onClick={() => handleMoodTap(m.label)}
           >
             {m.label}
@@ -202,7 +231,6 @@ export default function Home({ user, onSwitchProfile }) {
         <span style={{ fontSize: "20px", color: "var(--accent)" }}>+</span>
       </button>
 
-      {/* Loading skeleton */}
       {!dataLoaded && (
         <div style={s.loadingRow}>
           <SkeletonBlock height="72px" />
@@ -210,7 +238,6 @@ export default function Home({ user, onSwitchProfile }) {
         </div>
       )}
 
-      {/* Established user: last entry + arc */}
       {dataLoaded && hasHistory && (
         <>
           {recentEntry && (
@@ -245,7 +272,6 @@ export default function Home({ user, onSwitchProfile }) {
         </>
       )}
 
-      {/* New user empty state */}
       {dataLoaded && !hasHistory && (
         <>
           <div style={s.sectionHeader}><span style={s.sectionTitle}>Getting started</span></div>
@@ -271,6 +297,28 @@ export default function Home({ user, onSwitchProfile }) {
           </div>
         </>
       )}
+
+      <BottomSheet isOpen={sheetOpen} onClose={handleSheetClose}>
+        <div style={{ textAlign: "center", marginBottom: "4px" }}>
+          <div style={s.sheetEmotion(selectedMoodColor)}>{checkinEmotion}</div>
+          <div style={s.sheetTitle}>How do you want to sit with this?</div>
+          <div style={s.sheetSub}>Log it quietly or open it up with Indy.</div>
+        </div>
+        <div style={s.sheetBtns}>
+          <button style={s.primaryBtn} onClick={handleChatWithIndy}>
+            Chat with Indy
+          </button>
+          <button
+            style={s.ghostBtn(checkinStatus === "done")}
+            onClick={handleJustLog}
+            disabled={checkinStatus !== null}
+          >
+            {checkinStatus === "logging" && "Logging..."}
+            {checkinStatus === "done"    && "Logged"}
+            {checkinStatus === null      && "Just log it"}
+          </button>
+        </div>
+      </BottomSheet>
     </div>
   );
 }

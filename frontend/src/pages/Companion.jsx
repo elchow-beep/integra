@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { sendMessage, resetChat } from "../api.js";
+import { useLocation } from "react-router-dom";
+import { sendMessage, resetChat, createEntry } from "../api.js";
 
 /**
  * Companion.jsx
@@ -9,6 +10,8 @@ import { sendMessage, resetChat } from "../api.js";
  * Features:
  *   - Disclaimer chip always visible at top
  *   - If entry context is passed from Journal, first message includes it
+ *   - If checkinEmotion is passed via router state, Indy opens with a
+ *     targeted prompt on mount
  *   - Crisis responses are visually distinct (amber warning card)
  *   - Crisis response has a brief thinking delay so it feels considered
  *   - Crisis response shows a tappable 988 call button
@@ -16,6 +19,8 @@ import { sendMessage, resetChat } from "../api.js";
  *   - Reset button requires confirmation before clearing
  *   - Guest mode shows a welcome message on first load
  *   - Thinking state shows rotating phrases instead of static text
+ *   - After 3 user messages in a checkin flow, a "Save as journal entry"
+ *     banner appears above the input
  */
 
 const THINKING_PHRASES = [
@@ -29,6 +34,8 @@ const THINKING_PHRASES = [
 function randomThinkingPhrase() {
   return THINKING_PHRASES[Math.floor(Math.random() * THINKING_PHRASES.length)];
 }
+
+const SAVE_BANNER_THRESHOLD = 3;
 
 const s = {
   screen: {
@@ -125,6 +132,49 @@ const s = {
     fontSize: "11px",
     color: "var(--text-muted)",
     cursor: "pointer",
+    fontFamily: "var(--font-body)",
+  },
+  saveBanner: {
+    margin: "0 16px 8px",
+    background: "var(--surface-raised)",
+    border: "1px solid var(--border)",
+    borderRadius: "10px",
+    padding: "10px 14px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: "12px",
+    flexShrink: 0,
+  },
+  saveBannerText: {
+    fontSize: "12px",
+    fontWeight: 300,
+    color: "var(--text-secondary)",
+    lineHeight: 1.4,
+  },
+  saveBannerBtns: {
+    display: "flex",
+    gap: "8px",
+    flexShrink: 0,
+  },
+  saveBtn: {
+    background: "var(--accent)",
+    border: "none",
+    borderRadius: "7px",
+    padding: "5px 12px",
+    fontSize: "11px",
+    fontWeight: 500,
+    color: "#1c1a18",
+    cursor: "pointer",
+    fontFamily: "var(--font-body)",
+  },
+  dismissBtn: {
+    background: "transparent",
+    border: "none",
+    fontSize: "11px",
+    color: "var(--text-muted)",
+    cursor: "pointer",
+    padding: "4px 8px",
     fontFamily: "var(--font-body)",
   },
   messages: {
@@ -280,15 +330,34 @@ const s = {
 };
 
 export default function Companion({ user, entryContext, onContextUsed }) {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [thinkingPhrase, setThinkingPhrase] = useState(THINKING_PHRASES[0]);
+  const location = useLocation();
+  const checkinEmotion = location.state?.checkinEmotion || null;
+
+  const [messages, setMessages]               = useState([]);
+  const [input, setInput]                     = useState("");
+  const [loading, setLoading]                 = useState(false);
+  const [thinkingPhrase, setThinkingPhrase]   = useState(THINKING_PHRASES[0]);
   const [contextConsumed, setContextConsumed] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [showConfirm, setShowConfirm]         = useState(false);
+  const [userMessageCount, setUserMessageCount] = useState(0);
+  const [saveBannerVisible, setSaveBannerVisible] = useState(false);
+  const [saveStatus, setSaveStatus]           = useState(null); // null | "saving" | "saved"
   const bottomRef = useRef(null);
 
   const isGuest = !user || user.user_id === "guest";
+
+  // inject checkin opening message on mount if arriving from check-in flow
+  useEffect(() => {
+    if (checkinEmotion) {
+      setMessages([
+        {
+          role: "assistant",
+          content: `You checked in as ${checkinEmotion} -- want to tell me what's going on?`,
+        },
+      ]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -313,10 +382,17 @@ export default function Companion({ user, entryContext, onContextUsed }) {
     setLoading(true);
     setThinkingPhrase(randomThinkingPhrase());
 
+    const newCount = userMessageCount + 1;
+    setUserMessageCount(newCount);
+
+    // show save banner after threshold, only once, only in checkin flow
+    if (checkinEmotion && newCount >= SAVE_BANNER_THRESHOLD && !saveBannerVisible && saveStatus === null) {
+      setSaveBannerVisible(true);
+    }
+
     try {
       const data = await sendMessage(user?.user_id ?? "guest", text, contextToSend);
 
-      // Brief delay before showing crisis response so it feels considered
       if (data.crisis_detected) {
         await new Promise((resolve) => setTimeout(resolve, 1500));
       }
@@ -329,7 +405,7 @@ export default function Companion({ user, entryContext, onContextUsed }) {
           crisis: data.crisis_detected,
         },
       ]);
-    } catch (err) {
+    } catch {
       setMessages((prev) => [
         ...prev,
         {
@@ -343,10 +419,25 @@ export default function Companion({ user, entryContext, onContextUsed }) {
     }
   }
 
+  async function handleSaveAsEntry() {
+    if (!user || isGuest) return;
+    setSaveStatus("saving");
+    try {
+      const transcript = messages
+        .map((m) => `${m.role === "user" ? "You" : "Indy"}: ${m.content}`)
+        .join("\n\n");
+      await createEntry(user.user_id, transcript, null, "checkin", checkinEmotion);
+      setSaveStatus("saved");
+      setTimeout(() => setSaveBannerVisible(false), 1500);
+    } catch {
+      setSaveStatus(null);
+    }
+  }
+
   function handleResetClick() {
     if (messages.length === 0) return;
     if (isGuest) {
-      resetChat("guest").catch(() => { });
+      resetChat("guest").catch(() => {});
       setMessages([]);
       return;
     }
@@ -355,7 +446,7 @@ export default function Companion({ user, entryContext, onContextUsed }) {
 
   async function confirmReset() {
     setShowConfirm(false);
-    await resetChat(user?.user_id ?? "guest").catch(() => { });
+    await resetChat(user?.user_id ?? "guest").catch(() => {});
     setMessages([]);
   }
 
@@ -439,6 +530,26 @@ export default function Companion({ user, entryContext, onContextUsed }) {
 
         <div ref={bottomRef} />
       </div>
+
+      {saveBannerVisible && (
+        <div style={s.saveBanner}>
+          <span style={s.saveBannerText}>Save this conversation as a journal entry?</span>
+          <div style={s.saveBannerBtns}>
+            <button style={s.dismissBtn} onClick={() => setSaveBannerVisible(false)}>
+              Dismiss
+            </button>
+            <button
+              style={{ ...s.saveBtn, opacity: saveStatus !== null ? 0.6 : 1 }}
+              onClick={handleSaveAsEntry}
+              disabled={saveStatus !== null}
+            >
+              {saveStatus === "saving" && "Saving..."}
+              {saveStatus === "saved"  && "Saved"}
+              {saveStatus === null     && "Save as entry"}
+            </button>
+          </div>
+        </div>
+      )}
 
       <div style={s.inputArea}>
         <textarea

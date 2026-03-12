@@ -32,10 +32,25 @@ export function getEntries(userId) {
   return request(`/users/${userId}/entries`);
 }
 
-export function createEntry(userId, text, weekNumber = null) {
+export function createEntry(userId, text, weekNumber = null, entryType = "journal", checkinEmotion = null) {
   return request("/entries", {
     method: "POST",
-    body: JSON.stringify({ user_id: userId, text, week_number: weekNumber }),
+    body: JSON.stringify({
+      user_id: userId,
+      text,
+      week_number: weekNumber,
+      entry_type: entryType,
+      checkin_emotion: checkinEmotion,
+    }),
+  });
+}
+
+// ---- Quick check-in ----
+
+export function postCheckin(userId, emotion) {
+  return request("/checkin", {
+    method: "POST",
+    body: JSON.stringify({ user_id: userId, emotion }),
   });
 }
 
