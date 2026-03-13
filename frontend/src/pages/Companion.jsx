@@ -24,7 +24,7 @@ import { resetChat, createEntry } from "../api.js";
  *     banner appears above the input
  */
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "https://integra.up.railway.app";
+const API_BASE = (import.meta.env.VITE_API_URL ?? "https://integra.up.railway.app").replace(/\/$/, "");
 
 const THINKING_PHRASES = [
   "Sitting with what you shared...",
