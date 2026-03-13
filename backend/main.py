@@ -118,6 +118,8 @@ class NewEntryRequest(BaseModel):
     user_id: str
     text: str
     week_number: Optional[int] = None
+    entry_type: Optional[str] = "journal"
+    checkin_emotion: Optional[str] = None
 
 
 class ChatRequest(BaseModel):
@@ -236,6 +238,8 @@ def create_entry(req: NewEntryRequest):
         "date": datetime.now().strftime("%Y-%m-%d"),
         "week_number": req.week_number,
         "text": req.text,
+        "entry_type": req.entry_type,
+        "checkin_emotion": req.checkin_emotion,
         "emotions": emotions,
         "themes": themes,
         "recommendations": recommendations,
