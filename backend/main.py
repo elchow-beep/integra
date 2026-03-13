@@ -18,6 +18,7 @@ from typing import Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -143,7 +144,6 @@ def list_users():
     profiles = []
     for user in data["users"]:
         user_id = user["user_id"]
-        # Always include seeded demo users; for created users, only include recent ones
         if user_id not in SEEDED_USER_IDS and not is_recent(user):
             continue
         entry_count = len(user.get("entries", []))
@@ -271,6 +271,26 @@ def chat(req: ChatRequest):
         "sources": result.get("sources", []),
         "crisis_detected": result.get("crisis_detected", False),
     }
+
+
+@app.post("/chat/stream")
+async def chat_stream(req: ChatRequest):
+    rag = get_rag_pipeline()
+
+    def generate():
+        yield from rag.chat_stream(
+            user_message=req.message,
+            entry_context=req.entry_context,
+        )
+
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @app.post("/chat/reset")

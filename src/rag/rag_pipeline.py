@@ -193,6 +193,7 @@ class IntegraRAGPipeline:
             return {
                 "response": crisis_result["response"],
                 "is_crisis": True,
+                "crisis_detected": True,
                 "sources": [],
                 "retrieved_text": "",
             }
@@ -200,7 +201,6 @@ class IntegraRAGPipeline:
         # Step 2: Retrieval
         query = user_message
         if entry_context:
-            # Use entry text as the retrieval query for richer context
             query = entry_context[:1000]
 
         context_str, sources = _retrieve_context(query, self._vector_store)
@@ -229,13 +229,79 @@ class IntegraRAGPipeline:
         return {
             "response": response_text,
             "is_crisis": False,
+            "crisis_detected": False,
             "sources": sources,
             "retrieved_text": context_str,
         }
 
+    def chat_stream(
+        self,
+        user_message: str,
+        entry_context: str = None,
+    ):
+        """
+        Streaming version of chat(). Yields text chunks as they arrive from
+        GPT-4o. Crisis responses are yielded as a single chunk (no streaming).
+
+        Yields:
+            str chunks of the assistant response
+
+        After the generator is exhausted, conversation history has been updated.
+        Callers should not update history themselves.
+        """
+        # Step 1: Crisis check -- no streaming for crisis path
+        crisis_result = check_for_crisis(user_message)
+        if crisis_result["is_crisis"]:
+            yield f"data: CRISIS\n\n"
+            yield f"data: {crisis_result['response']}\n\n"
+            yield "data: [DONE]\n\n"
+            return
+
+        # Step 2: Retrieval
+        query = entry_context[:1000] if entry_context else user_message
+        context_str, _ = _retrieve_context(query, self._vector_store)
+
+        # Step 3: Build messages
+        messages = _build_prompt_messages(
+            user_message=user_message,
+            context_str=context_str,
+            conversation_history=self._conversation_history,
+            entry_context=entry_context,
+        )
+
+        # Step 4: Stream response
+        full_response = []
+
+        stream = client.chat.completions.create(
+            model="gpt-4o",
+            messages=messages,
+            max_tokens=150,
+            temperature=0.7,
+            stream=True,
+        )
+
+        for chunk in stream:
+            token = chunk.choices[0].delta.content
+            if token:
+                full_response.append(token)
+                # Escape newlines so each SSE data line stays valid
+                escaped = token.replace("\n", "\\n")
+                yield f"data: {escaped}\n\n"
+
+        yield "data: [DONE]\n\n"
+
+        # Step 5: Update conversation history after stream completes
+        response_text = "".join(full_response)
+        self._conversation_history.append({"role": "user", "content": user_message})
+        self._conversation_history.append({"role": "assistant", "content": response_text})
+
     def reset(self):
         """Clear conversation history to start a fresh session."""
         self._conversation_history = []
+
+    # Alias used by reset_chat endpoint
+    def reset_conversation(self):
+        self.reset()
 
 
 # ---------------------------------------------------------------------------
@@ -246,7 +312,6 @@ class IntegraRAGPipeline:
 if __name__ == "__main__":
     pipeline = IntegraRAGPipeline()
 
-    # Simulate Jordan's first entry being submitted
     entry_text = (
         "I don't really know how to put this into words yet. It's been three days "
         "since the session and I still feel like I'm not fully back in my body. "

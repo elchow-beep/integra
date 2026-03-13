@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
-import { sendMessage, resetChat, createEntry } from "../api.js";
+import { resetChat, createEntry } from "../api.js";
 
 /**
  * Companion.jsx
@@ -18,10 +18,13 @@ import { sendMessage, resetChat, createEntry } from "../api.js";
  *   - Auto-scrolls to latest message
  *   - Reset button requires confirmation before clearing
  *   - Guest mode shows a welcome message on first load
- *   - Thinking state shows rotating phrases instead of static text
+ *   - Thinking state shows rotating phrases until first token arrives
+ *   - Responses stream token-by-token from GPT-4o
  *   - After 3 user messages in a checkin flow, a "Save as journal entry"
  *     banner appears above the input
  */
+
+const API_BASE = import.meta.env.VITE_API_URL ?? "https://integra.up.railway.app";
 
 const THINKING_PHRASES = [
   "Sitting with what you shared...",
@@ -346,7 +349,6 @@ export default function Companion({ user, entryContext, onContextUsed }) {
 
   const isGuest = !user || user.user_id === "guest";
 
-  // inject checkin opening message on mount if arriving from check-in flow
   useEffect(() => {
     if (checkinEmotion) {
       setMessages([
@@ -385,35 +387,100 @@ export default function Companion({ user, entryContext, onContextUsed }) {
     const newCount = userMessageCount + 1;
     setUserMessageCount(newCount);
 
-    // show save banner after threshold, only once, only in checkin flow
     if (checkinEmotion && newCount >= SAVE_BANNER_THRESHOLD && !saveBannerVisible && saveStatus === null) {
       setSaveBannerVisible(true);
     }
 
     try {
-      const data = await sendMessage(user?.user_id ?? "guest", text, contextToSend);
+      const res = await fetch(`${API_BASE}/chat/stream`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: user?.user_id ?? "guest",
+          message: text,
+          entry_context: contextToSend ?? undefined,
+        }),
+      });
 
-      if (data.crisis_detected) {
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+
+      // Placeholder for the streaming assistant message
+      let isCrisis = false;
+      let firstToken = true;
+
+      setMessages((prev) => [...prev, { role: "assistant", content: "", streaming: true }]);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const raw = decoder.decode(value, { stream: true });
+
+        // SSE lines arrive as "data: <payload>\n\n"
+        const lines = raw.split("\n").filter((l) => l.startsWith("data: "));
+
+        for (const line of lines) {
+          const payload = line.slice(6); // strip "data: "
+
+          if (payload === "[DONE]") break;
+
+          if (payload === "CRISIS") {
+            isCrisis = true;
+            // Add the intentional crisis delay before showing anything
+            await new Promise((r) => setTimeout(r, 1500));
+            continue;
+          }
+
+          // On first real token, hide the thinking state
+          if (firstToken) {
+            firstToken = false;
+            setLoading(false);
+          }
+
+          // Unescape newlines encoded by the backend
+          const token = payload.replace(/\\n/g, "\n");
+
+          setMessages((prev) => {
+            const updated = [...prev];
+            const last = updated[updated.length - 1];
+            if (last?.streaming) {
+              updated[updated.length - 1] = {
+                ...last,
+                content: last.content + token,
+                crisis: isCrisis,
+              };
+            }
+            return updated;
+          });
+        }
       }
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: data.response,
-          crisis: data.crisis_detected,
-        },
-      ]);
+      // Finalise the message -- remove streaming flag
+      setMessages((prev) => {
+        const updated = [...prev];
+        const last = updated[updated.length - 1];
+        if (last?.streaming) {
+          updated[updated.length - 1] = { ...last, streaming: false };
+        }
+        return updated;
+      });
+
     } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: "Something went wrong reaching the server. Please try again.",
-          error: true,
-        },
-      ]);
+      setMessages((prev) => {
+        // Remove the empty streaming placeholder if it exists
+        const withoutPlaceholder = prev.filter((m) => !m.streaming);
+        return [
+          ...withoutPlaceholder,
+          {
+            role: "assistant",
+            content: "Something went wrong reaching the server. Please try again.",
+            error: true,
+          },
+        ];
+      });
     } finally {
       setLoading(false);
     }
@@ -513,7 +580,7 @@ export default function Companion({ user, entryContext, onContextUsed }) {
             <div style={s.bubble(msg.role, msg.crisis)}>
               {msg.crisis && <div style={s.crisisLabel}>Crisis support</div>}
               {msg.content}
-              {msg.crisis && (
+              {msg.crisis && !msg.streaming && (
                 <a href="tel:988" style={s.callBtn}>
                   Call or text 988
                 </a>
