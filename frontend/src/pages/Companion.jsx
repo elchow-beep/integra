@@ -253,7 +253,7 @@ const s = {
     border: "1px solid var(--border)",
     borderRadius: "10px",
     padding: "10px 14px",
-    fontSize: "13px",
+    fontSize: "16px",
     color: "var(--text-primary)",
     fontFamily: "var(--font-body)",
     outline: "none",
