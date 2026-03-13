@@ -15,6 +15,33 @@ import EmotionPill from "../components/EmotionPill.jsx";
  * A "Reflect with Indy" button navigates to Companion with entry context.
  */
 
+const ANALYZING_PHRASES = [
+  "Reading your entry...",
+  "Detecting emotions...",
+  "Extracting themes...",
+  "Finding practices...",
+  "Almost there...",
+];
+
+function useAnalyzingPhrase(active) {
+  const [index, setIndex] = useState(0);
+  const intervalRef = useRef(null);
+
+  useEffect(() => {
+    if (!active) {
+      setIndex(0);
+      clearInterval(intervalRef.current);
+      return;
+    }
+    intervalRef.current = setInterval(() => {
+      setIndex((i) => (i + 1) % ANALYZING_PHRASES.length);
+    }, 2200);
+    return () => clearInterval(intervalRef.current);
+  }, [active]);
+
+  return ANALYZING_PHRASES[index];
+}
+
 function formatDate(dateStr) {
   if (!dateStr) return "";
   const d = new Date(dateStr + "T00:00:00");
@@ -475,6 +502,7 @@ export default function Journal({ user, onEntrySubmitted }) {
   const [result, setResult] = useState(null);
   const [submittedText, setSubmittedText] = useState("");
   const [error, setError] = useState(null);
+  const analyzingPhrase = useAnalyzingPhrase(submitting);
 
   useEffect(() => {
     if (!user) return;
@@ -594,7 +622,7 @@ export default function Journal({ user, onEntrySubmitted }) {
               onClick={handleSubmit}
               disabled={submitting || !text.trim()}
             >
-              {submitting ? "Analyzing..." : "Save entry"}
+              {submitting ? analyzingPhrase : "Save entry"}
             </button>
           </>
         )}
