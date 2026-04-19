@@ -22,5 +22,17 @@ numpy
 requests
 
 # App
-streamlit
-altair
+fastapi
+uvicorn[standard]
+
+# Database
+sqlalchemy
+psycopg2-binary
+alembic
+
+# Auth
+python-jose[cryptography]
+passlib[bcrypt]
+
+# Rate limiting
+slowapi
